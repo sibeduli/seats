@@ -17,7 +17,7 @@ COPY . .
 RUN mkdir -p /app/instance
 
 # Expose port
-EXPOSE 6666
+EXPOSE 8080
 
 # Environment variables
 ENV FLASK_APP=app.py
@@ -25,4 +25,4 @@ ENV FLASK_ENV=production
 
 # Run with gunicorn for production
 # Use --reload for development with volume mounts
-CMD ["gunicorn", "--bind", "0.0.0.0:6666", "--workers", "2", "--threads", "4", "--reload", "wsgi:app"]
+CMD ["gunicorn", "--bind", "0.0.0.0:8080", "--workers", "2", "--threads", "4", "--reload", "wsgi:app"]

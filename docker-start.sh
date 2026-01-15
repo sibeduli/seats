@@ -3,4 +3,4 @@
 
 echo "🚀 Starting seats-app..."
 docker compose up -d --build
-echo "✅ Container started at http://localhost:6666"
+echo "✅ Container started at http://localhost:8080"

@@ -3,7 +3,7 @@ services:
     build: .
     container_name: seats-app
     ports:
-      - "6666:6666"
+      - "8080:8080"
     volumes:
       # Mount source code for hot reload
       - .:/app
