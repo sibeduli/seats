@@ -2,6 +2,6 @@
 # Start the Docker container (build if needed)
 
 echo "🚀 Starting seats-app..."
-docker-compose up -d --build
+docker compose up -d --build
 echo "✅ Container started at http://localhost:5000"
-docker-compose logs -f
+docker compose logs -f

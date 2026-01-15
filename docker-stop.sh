@@ -2,5 +2,5 @@
 # Stop the Docker container
 
 echo "⏹️  Stopping seats-app..."
-docker-compose down
+docker compose down
 echo "✅ Container stopped"

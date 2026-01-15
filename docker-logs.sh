@@ -2,4 +2,4 @@
 # View container logs
 
 echo "📋 Viewing seats-app logs..."
-docker-compose logs -f --tail=100
+docker compose logs -f --tail=100

@@ -4,7 +4,7 @@
 echo "🗑️  Purging seats-app (containers, images, volumes)..."
 
 # Stop and remove containers
-docker-compose down -v --remove-orphans
+docker compose down -v --remove-orphans
 
 # Remove the image
 docker rmi seats-seats 2>/dev/null || docker rmi seats_seats 2>/dev/null || true
