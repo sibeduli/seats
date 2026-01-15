@@ -1,0 +1,29 @@
+# Git
+.git
+.gitignore
+
+# Python
+__pycache__
+*.pyc
+*.pyo
+*.pyd
+.Python
+venv
+.venv
+env
+
+# IDE
+.vscode
+.idea
+*.swp
+*.swo
+
+# Database (will be mounted as volume)
+instance/
+*.db
+
+# Logs
+*.log
+
+# Docker scripts (not needed in image)
+docker-*.sh

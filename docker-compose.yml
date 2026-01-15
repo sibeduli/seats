@@ -1,0 +1,19 @@
+version: '3.8'
+
+services:
+  seats:
+    build: .
+    container_name: seats-app
+    ports:
+      - "5000:5000"
+    volumes:
+      # Mount source code for hot reload
+      - .:/app
+      # Persist SQLite database
+      - seats-data:/app/instance
+    env_file:
+      - .env
+    restart: unless-stopped
+
+volumes:
+  seats-data:
