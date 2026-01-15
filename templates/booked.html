@@ -1,0 +1,343 @@
+{% extends 'base.html' %}
+
+{% block title %}Booked List - YARSI Hippocratic Oath{% endblock %}
+
+{% block content %}
+<div class="bg-white rounded-lg shadow-xl p-8 md:p-12 max-w-5xl w-full">
+    <!-- Header -->
+    <div class="text-center mb-8">
+        <h1 class="font-serif text-3xl md:text-4xl text-gray-800 mb-2">Daftar Kursi Terpesan</h1>
+        <p class="text-gray-500 text-sm md:text-base">BAIAT DOKTER MUSLIM - BATCH FEBRUARI 2026</p>
+    </div>
+
+    <!-- Search and Filter -->
+    <form id="filter-form" method="GET" class="flex flex-col md:flex-row gap-4 mb-6">
+        <input type="hidden" name="per_page" value="{{ pagination.per_page }}">
+        <div class="flex-1 relative">
+            <input type="text" name="search" id="search" placeholder="Cari nama, no HP, atau kursi..." 
+                   value="{{ search }}"
+                   class="w-full px-4 py-2 pr-10 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+            {% if search %}
+            <a href="{{ url_for('booked_list', per_page=pagination.per_page, status=status_filter) }}" 
+               class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600" title="Hapus pencarian">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                </svg>
+            </a>
+            {% endif %}
+        </div>
+        <div>
+            <select name="status" id="status-filter" class="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    onchange="this.form.submit()">
+                <option value="all" {% if status_filter == 'all' %}selected{% endif %}>Semua Status</option>
+                <option value="pending" {% if status_filter == 'pending' %}selected{% endif %}>Pending</option>
+                <option value="active" {% if status_filter == 'active' %}selected{% endif %}>Active</option>
+                <option value="expired" {% if status_filter == 'expired' %}selected{% endif %}>Expired</option>
+                <option value="revoked" {% if status_filter == 'revoked' %}selected{% endif %}>Revoked</option>
+            </select>
+        </div>
+        <div>
+            <button type="submit" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors">
+                Cari
+            </button>
+        </div>
+        <div>
+            <button type="button" onclick="location.reload()" class="relative px-4 py-2 bg-gray-700 hover:bg-gray-800 text-white rounded-lg transition-colors flex items-center gap-2">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+                </svg>
+                Refresh
+                <span id="new-order-badge" class="hidden absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">0</span>
+            </button>
+        </div>
+    </form>
+
+    <!-- Table -->
+    <div class="overflow-x-auto">
+        <table class="w-full text-left">
+            <thead>
+                <tr class="border-b border-gray-200">
+                    <th class="py-3 px-4 text-gray-600 font-medium">No</th>
+                    <th class="py-3 px-4 text-gray-600 font-medium">Kursi</th>
+                    <th class="py-3 px-4 text-gray-600 font-medium">Nama</th>
+                    <th class="py-3 px-4 text-gray-600 font-medium">No HP</th>
+                    <th class="py-3 px-4 text-gray-600 font-medium">Status</th>
+                    <th class="py-3 px-4 text-gray-600 font-medium">Waktu</th>
+                    <th class="py-3 px-4 text-gray-600 font-medium">Aksi</th>
+                </tr>
+            </thead>
+            <tbody id="booking-table">
+                {% if transactions %}
+                    {% for t in transactions %}
+                    <tr class="border-b border-gray-100 hover:bg-gray-50 table-row" data-status="{{ t.status }}" data-name="{{ t.name.lower() }}">
+                        <td class="py-3 px-4 text-gray-700">{{ loop.index }}</td>
+                        <td class="py-3 px-4 text-gray-700 font-medium">
+                            {% for seat in t.seats %}{{ seat.region }}-{{ seat.seat_number }}{% if not loop.last %}, {% endif %}{% endfor %}
+                        </td>
+                        <td class="py-3 px-4 text-gray-700">{{ t.name }}</td>
+                        <td class="py-3 px-4 text-gray-700">{{ t.phone }}</td>
+                        <td class="py-3 px-4">
+                            {% if t.status == 'active' %}
+                            <span class="px-2 py-1 text-xs rounded-full bg-green-100 text-green-700">Active</span>
+                            {% elif t.status == 'pending' %}
+                            <span class="px-2 py-1 text-xs rounded-full bg-amber-100 text-amber-700">Pending</span>
+                            {% elif t.status == 'expired' %}
+                            <span class="px-2 py-1 text-xs rounded-full bg-gray-100 text-gray-700">Expired</span>
+                            {% else %}
+                            <span class="px-2 py-1 text-xs rounded-full bg-red-100 text-red-700">Revoked</span>
+                            {% endif %}
+                        </td>
+                        <td class="py-3 px-4 text-gray-500 text-sm">{{ t.timestamp.strftime('%d/%m/%Y %H:%M') }}</td>
+                        <td class="py-3 px-4">
+                            <div class="flex gap-2 flex-wrap">
+                                <a href="/ticket/{{ t.ticket_hash }}" target="_blank" class="px-3 py-1 bg-blue-100 text-blue-700 hover:bg-blue-200 rounded text-sm transition-colors">Lihat Tiket</a>
+                                {% if t.status == 'pending' %}
+                                <button onclick="approveTransaction({{ t.id }})" class="px-3 py-1 bg-green-100 text-green-700 hover:bg-green-200 rounded text-sm transition-colors">Approve</button>
+                                <button onclick="rejectTransaction({{ t.id }})" class="px-3 py-1 bg-red-100 text-red-700 hover:bg-red-200 rounded text-sm transition-colors">Reject</button>
+                                {% elif t.status == 'active' %}
+                                <button onclick="revokeTransaction({{ t.id }})" class="px-3 py-1 bg-red-100 text-red-700 hover:bg-red-200 rounded text-sm transition-colors">Revoke</button>
+                                {% endif %}
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                {% else %}
+                <tr>
+                    <td colspan="7" class="py-8 text-center text-gray-500">Belum ada data booking</td>
+                </tr>
+                {% endif %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Pagination -->
+    {% if pagination.pages > 1 %}
+    <div class="flex justify-center items-center gap-2 mt-6">
+        {% if pagination.has_prev %}
+        <a href="{{ url_for('booked_list', page=pagination.prev_num, per_page=pagination.per_page, status=status_filter, search=search) }}" 
+           class="px-3 py-2 bg-gray-200 hover:bg-gray-300 rounded-lg transition-colors">
+            &laquo; Prev
+        </a>
+        {% endif %}
+        
+        {% for p in pagination.iter_pages(left_edge=1, right_edge=1, left_current=2, right_current=2) %}
+            {% if p %}
+                {% if p == pagination.page %}
+                <span class="px-3 py-2 bg-blue-600 text-white rounded-lg">{{ p }}</span>
+                {% else %}
+                <a href="{{ url_for('booked_list', page=p, per_page=pagination.per_page, status=status_filter, search=search) }}" 
+                   class="px-3 py-2 bg-gray-200 hover:bg-gray-300 rounded-lg transition-colors">{{ p }}</a>
+                {% endif %}
+            {% else %}
+                <span class="px-2">...</span>
+            {% endif %}
+        {% endfor %}
+        
+        {% if pagination.has_next %}
+        <a href="{{ url_for('booked_list', page=pagination.next_num, per_page=pagination.per_page, status=status_filter, search=search) }}" 
+           class="px-3 py-2 bg-gray-200 hover:bg-gray-300 rounded-lg transition-colors">
+            Next &raquo;
+        </a>
+        {% endif %}
+    </div>
+    {% endif %}
+    
+    <!-- Summary -->
+    <div class="flex justify-between items-center mt-4 text-sm text-gray-500">
+        <span>Halaman {{ pagination.page }} dari {{ pagination.pages if pagination.pages > 0 else 1 }} (Total: {{ pagination.total }} transaksi)</span>
+        <div class="flex items-center gap-2">
+            <span>Per halaman:</span>
+            <select onchange="window.location.href='{{ url_for('booked_list', status=status_filter, search=search) }}&page=1&per_page=' + this.value" 
+                    class="px-2 py-1 border border-gray-300 rounded">
+                <option value="5" {% if pagination.per_page == 5 %}selected{% endif %}>5</option>
+                <option value="10" {% if pagination.per_page == 10 %}selected{% endif %}>10</option>
+                <option value="20" {% if pagination.per_page == 20 %}selected{% endif %}>20</option>
+                <option value="50" {% if pagination.per_page == 50 %}selected{% endif %}>50</option>
+                <option value="100" {% if pagination.per_page == 100 %}selected{% endif %}>100</option>
+            </select>
+        </div>
+    </div>
+</div>
+
+<script>
+function approveTransaction(id) {
+    if (!confirm('Approve tiket ini? Status akan berubah menjadi Active.')) return;
+    
+    fetch(`/api/approve/${id}`, { method: 'POST' })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                location.reload();
+            } else {
+                alert('Gagal approve: ' + (data.error || 'Unknown error'));
+            }
+        })
+        .catch(err => alert('Error: ' + err));
+}
+
+function rejectTransaction(id) {
+    if (!confirm('Reject tiket ini? Kursi akan dibebaskan.')) return;
+    
+    fetch(`/api/reject/${id}`, { method: 'POST' })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                location.reload();
+            } else {
+                alert('Gagal reject: ' + (data.error || 'Unknown error'));
+            }
+        })
+        .catch(err => alert('Error: ' + err));
+}
+
+function revokeTransaction(id) {
+    if (!confirm('Yakin ingin revoke tiket ini? Kursi akan dibebaskan.')) return;
+    
+    fetch(`/api/revoke/${id}`, { method: 'POST' })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                location.reload();
+            } else {
+                alert('Gagal revoke: ' + (data.error || 'Unknown error'));
+            }
+        })
+        .catch(err => alert('Error: ' + err));
+}
+
+// SSE for real-time notifications
+let eventSource = null;
+let newOrderCount = 0;
+
+function connectSSE() {
+    eventSource = new EventSource('/api/events');
+    
+    eventSource.addEventListener('new_booking', function(e) {
+        const data = JSON.parse(e.data);
+        showNewOrderToast(data);
+        newOrderCount++;
+        updateNewOrderBadge();
+    });
+    
+    eventSource.addEventListener('ping', function(e) {
+        // Keep-alive ping
+    });
+    
+    eventSource.onerror = function() {
+        eventSource.close();
+        // Reconnect after 5 seconds
+        setTimeout(connectSSE, 5000);
+    };
+}
+
+function showNewOrderToast(data) {
+    const toast = document.getElementById('order-toast');
+    const toastName = document.getElementById('toast-name');
+    const toastSeats = document.getElementById('toast-seats');
+    const toastPhone = document.getElementById('toast-phone');
+    
+    toastName.textContent = data.name;
+    toastSeats.textContent = data.seats.join(', ');
+    toastPhone.textContent = data.phone;
+    
+    toast.classList.remove('translate-x-full', 'opacity-0');
+    toast.classList.add('translate-x-0', 'opacity-100');
+    
+    // Play notification sound
+    playNotificationSound();
+    
+    // Auto-hide after 10 seconds
+    setTimeout(() => {
+        hideToast();
+    }, 10000);
+}
+
+function hideToast() {
+    const toast = document.getElementById('order-toast');
+    toast.classList.add('translate-x-full', 'opacity-0');
+    toast.classList.remove('translate-x-0', 'opacity-100');
+}
+
+function updateNewOrderBadge() {
+    const badge = document.getElementById('new-order-badge');
+    if (newOrderCount > 0) {
+        badge.textContent = newOrderCount;
+        badge.classList.remove('hidden');
+    }
+}
+
+function playNotificationSound() {
+    // Simple beep using Web Audio API
+    try {
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        const oscillator = audioCtx.createOscillator();
+        const gainNode = audioCtx.createGain();
+        oscillator.connect(gainNode);
+        gainNode.connect(audioCtx.destination);
+        oscillator.frequency.value = 800;
+        oscillator.type = 'sine';
+        gainNode.gain.setValueAtTime(0.3, audioCtx.currentTime);
+        gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
+        oscillator.start(audioCtx.currentTime);
+        oscillator.stop(audioCtx.currentTime + 0.3);
+    } catch(e) {}
+}
+
+function refreshAndClear() {
+    newOrderCount = 0;
+    location.reload();
+}
+
+// Start SSE connection
+document.addEventListener('DOMContentLoaded', connectSSE);
+
+// Close SSE connection when navigating away to prevent blocking
+window.addEventListener('beforeunload', function() {
+    if (eventSource) {
+        eventSource.close();
+        eventSource = null;
+    }
+});
+
+// Also close on visibility change (tab switch)
+document.addEventListener('visibilitychange', function() {
+    if (document.hidden && eventSource) {
+        eventSource.close();
+        eventSource = null;
+    } else if (!document.hidden && !eventSource) {
+        connectSSE();
+    }
+});
+</script>
+
+<!-- New Order Toast -->
+<div id="order-toast" class="fixed top-4 right-4 w-80 bg-white rounded-lg shadow-2xl border-l-4 border-amber-500 transform translate-x-full opacity-0 transition-all duration-300 z-50">
+    <div class="p-4">
+        <div class="flex items-start">
+            <div class="flex-shrink-0">
+                <div class="w-10 h-10 bg-amber-100 rounded-full flex items-center justify-center">
+                    <svg class="w-5 h-5 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
+                    </svg>
+                </div>
+            </div>
+            <div class="ml-3 flex-1">
+                <p class="text-sm font-medium text-gray-900">Pesanan Baru!</p>
+                <div class="mt-1 text-sm text-gray-600">
+                    <p><strong>Nama:</strong> <span id="toast-name">-</span></p>
+                    <p><strong>Kursi:</strong> <span id="toast-seats">-</span></p>
+                    <p><strong>HP:</strong> <span id="toast-phone">-</span></p>
+                </div>
+                <div class="mt-3 flex gap-2">
+                    <button onclick="refreshAndClear()" class="px-3 py-1 bg-amber-500 text-white text-sm rounded hover:bg-amber-600 transition-colors">
+                        Refresh
+                    </button>
+                    <button onclick="hideToast()" class="px-3 py-1 bg-gray-200 text-gray-700 text-sm rounded hover:bg-gray-300 transition-colors">
+                        Tutup
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

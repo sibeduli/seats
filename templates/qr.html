@@ -1,0 +1,36 @@
+{% extends 'base.html' %}
+
+{% block title %}QR Code - YARSI Hippocratic Oath{% endblock %}
+
+{% block content %}
+<div class="bg-white rounded-lg shadow-xl p-8 md:p-12 max-w-xl w-full text-center">
+    <!-- Header -->
+    <div class="mb-8">
+        <h1 class="font-serif text-3xl md:text-4xl text-gray-800 mb-2">Scan untuk Akses</h1>
+        <p class="text-gray-500 text-sm md:text-base">BAIAT DOKTER MUSLIM - BATCH FEBRUARI 2026</p>
+    </div>
+
+    <!-- QR Code -->
+    <div class="flex justify-center mb-6">
+        <div id="qrcode" class="p-4 bg-white border border-gray-200 rounded-lg inline-block"></div>
+    </div>
+
+    <!-- URL Display -->
+    <div class="bg-gray-100 rounded-lg p-4 mb-6">
+        <p class="text-gray-600 text-sm mb-1">URL:</p>
+        <p id="site-url" class="text-gray-800 font-mono text-lg break-all">{{ site_url }}</p>
+    </div>
+
+    <!-- Instructions -->
+    <p class="text-gray-500 text-sm">Scan QR code di atas untuk membuka halaman booking kursi</p>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
+<script>
+    const siteUrl = "{{ site_url }}";
+    QRCode.toCanvas(document.createElement('canvas'), siteUrl, { width: 300, margin: 2 }, function (error, canvas) {
+        if (error) console.error(error);
+        document.getElementById('qrcode').appendChild(canvas);
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,459 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pesan Tiket - YARSI Hippocratic Oath</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        'serif': ['Playfair Display', 'serif'],
+                        'sans': ['Inter', 'sans-serif'],
+                    },
+                    colors: {
+                        'dark-bg': '#21393b',
+                        'seat-available': '#3b82f6',
+                        'seat-selected': '#eab308',
+                        'seat-booked': '#9ca3af',
+                        'seat-pending': '#f97316',
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-dark-bg min-h-screen font-sans">
+    <div class="min-h-screen flex items-center justify-center p-4">
+        <div class="bg-white rounded-lg shadow-xl p-6 md:p-10 max-w-4xl w-full">
+            <!-- Header -->
+            <div class="text-center mb-6">
+                <h1 class="font-serif text-3xl md:text-4xl text-gray-800 mb-2">Pesan Tiket Anda</h1>
+                <p class="text-gray-500 text-sm md:text-base">BAIAT DOKTER MUSLIM - BATCH FEBRUARI 2026</p>
+            </div>
+
+            <!-- Info Banner -->
+            <div class="bg-amber-50 border border-amber-200 rounded-lg p-4 mb-6">
+                <div class="flex items-start gap-3">
+                    <svg class="w-5 h-5 text-amber-600 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    </svg>
+                    <div class="text-sm text-amber-800">
+                        <p class="font-medium mb-1">Informasi Pemesanan</p>
+                        <p>Setelah memesan, tiket Anda akan berstatus <strong>Menunggu Pembayaran</strong>. Silahkan hubungi Contact Person untuk konfirmasi pembayaran.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Region Selector -->
+            <div class="flex justify-center mb-6 overflow-x-auto">
+                <div class="inline-flex bg-gray-100 rounded-lg p-1">
+                    <button onclick="showRegion('WLA')" id="btn-WLA" class="region-btn px-3 py-2 text-xs md:text-sm font-medium rounded-md transition-all bg-seat-available text-white">WLA</button>
+                    <button onclick="showRegion('WLB')" id="btn-WLB" class="region-btn px-3 py-2 text-xs md:text-sm font-medium rounded-md transition-all text-gray-600 hover:text-gray-800">WLB</button>
+                    <button onclick="showRegion('CL')" id="btn-CL" class="region-btn px-3 py-2 text-xs md:text-sm font-medium rounded-md transition-all text-gray-600 hover:text-gray-800">CL</button>
+                    <button onclick="showRegion('C')" id="btn-C" class="region-btn px-3 py-2 text-xs md:text-sm font-medium rounded-md transition-all text-gray-600 hover:text-gray-800">C</button>
+                    <button onclick="showRegion('CR')" id="btn-CR" class="region-btn px-3 py-2 text-xs md:text-sm font-medium rounded-md transition-all text-gray-600 hover:text-gray-800">CR</button>
+                    <button onclick="showRegion('WRB')" id="btn-WRB" class="region-btn px-3 py-2 text-xs md:text-sm font-medium rounded-md transition-all text-gray-600 hover:text-gray-800">WRB</button>
+                    <button onclick="showRegion('WRA')" id="btn-WRA" class="region-btn px-3 py-2 text-xs md:text-sm font-medium rounded-md transition-all text-gray-600 hover:text-gray-800">WRA</button>
+                </div>
+            </div>
+
+            <!-- Stage -->
+            <div class="bg-gray-200 text-gray-600 text-center py-3 rounded mb-6 uppercase tracking-widest text-sm font-medium">
+                Stage
+            </div>
+
+            <!-- Region Title -->
+            <div class="text-center mb-4 flex items-center justify-center gap-4">
+                <span id="region-title" class="text-lg font-medium text-gray-700">Region: WLA (Wing Left A)</span>
+                <a href="/static/assets/image.png" target="_blank" class="inline-flex items-center gap-1 px-3 py-1 bg-gray-100 hover:bg-gray-200 text-gray-600 text-sm rounded transition-colors">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"/>
+                    </svg>
+                    Full Map
+                </a>
+            </div>
+
+            <!-- Seat Grids -->
+            <div id="seat-container" class="flex justify-center mb-6 overflow-x-auto">
+                <div id="region-WLA" class="seat-region">
+                    <div class="flex flex-col gap-1 items-start" id="WLA-container"></div>
+                </div>
+                <div id="region-WLB" class="seat-region hidden">
+                    <div class="flex flex-col gap-1 items-start" id="WLB-container"></div>
+                </div>
+                <div id="region-CL" class="seat-region hidden">
+                    <div class="flex flex-col gap-1 items-start" id="CL-container"></div>
+                </div>
+                <div id="region-C" class="seat-region hidden">
+                    <div class="flex flex-col gap-1 items-start" id="C-container"></div>
+                </div>
+                <div id="region-CR" class="seat-region hidden">
+                    <div class="flex flex-col gap-1 items-start" id="CR-container"></div>
+                </div>
+                <div id="region-WRB" class="seat-region hidden">
+                    <div class="flex flex-col gap-1 items-start" id="WRB-container"></div>
+                </div>
+                <div id="region-WRA" class="seat-region hidden">
+                    <div class="flex flex-col gap-1 items-start" id="WRA-container"></div>
+                </div>
+            </div>
+
+            <!-- Legend -->
+            <div class="flex flex-wrap justify-center items-center gap-4 md:gap-8 text-sm text-gray-600 mb-6">
+                <div class="flex items-center gap-2">
+                    <div class="w-4 h-4 bg-seat-available rounded"></div>
+                    <span>Tersedia</span>
+                </div>
+                <div class="flex items-center gap-2">
+                    <div class="w-4 h-4 bg-seat-selected rounded"></div>
+                    <span>Pilihan Anda</span>
+                </div>
+                <div class="flex items-center gap-2">
+                    <div class="w-4 h-4 bg-seat-booked rounded"></div>
+                    <span>Sudah Dipesan</span>
+                </div>
+            </div>
+
+            <!-- Booking Form -->
+            <div id="booking-section" class="border-t pt-6 hidden">
+                <div class="text-center mb-4">
+                    <p class="text-gray-700">Kursi dipilih: <span id="selected-seats" class="font-medium">-</span></p>
+                </div>
+                <div class="max-w-md mx-auto">
+                    <input type="text" id="guest-name" placeholder="Masukkan nama lengkap Anda..." 
+                           class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 mb-3">
+                    <input type="tel" id="guest-phone" placeholder="Masukkan nomor HP (contoh: 08123456789)" 
+                           class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 mb-4">
+                    <button onclick="bookSeats()" class="w-full bg-seat-available hover:bg-blue-600 text-white font-medium py-3 rounded-lg transition-colors">
+                        Pesan Tiket
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Confirmation Modal -->
+    <div id="confirm-modal" class="fixed inset-0 bg-black/50 flex items-center justify-center hidden z-50">
+        <div class="bg-white rounded-lg p-8 max-w-md w-full mx-4">
+            <h2 class="font-serif text-2xl text-gray-800 mb-4 text-center">Konfirmasi Pemesanan</h2>
+            
+            <div class="bg-gray-50 rounded-lg p-4 mb-4">
+                <div class="mb-3">
+                    <p class="text-gray-500 text-sm">Nama</p>
+                    <p id="confirm-name" class="font-medium text-gray-800">-</p>
+                </div>
+                <div class="mb-3">
+                    <p class="text-gray-500 text-sm">Nomor HP</p>
+                    <p id="confirm-phone" class="font-medium text-gray-800">-</p>
+                </div>
+                <div>
+                    <p class="text-gray-500 text-sm">Kursi Dipilih</p>
+                    <p id="confirm-seats" class="font-medium text-gray-800">-</p>
+                </div>
+                
+                <!-- Mini-map Preview -->
+                <div class="mt-4 pt-4 border-t border-gray-200">
+                    <p class="text-gray-500 text-sm mb-2">Preview Lokasi</p>
+                    <div id="seat-preview-map" class="bg-gray-100 rounded-lg p-3 overflow-x-auto">
+                        <div class="flex justify-center gap-1 text-xs">
+                            <!-- Mini regions will be rendered here -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-amber-50 border border-amber-200 rounded-lg p-3 mb-4 text-sm text-amber-800">
+                <strong>Catatan:</strong> Tiket akan berstatus "Menunggu Pembayaran" sampai dikonfirmasi oleh panitia.
+            </div>
+            
+            <div id="confirm-status" class="mb-4 hidden">
+                <div class="flex items-center gap-2 text-yellow-600">
+                    <svg class="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    <span>Memproses pemesanan...</span>
+                </div>
+            </div>
+            
+            <div id="confirm-error" class="mb-4 hidden">
+                <div class="bg-red-50 border border-red-200 rounded-lg p-3 text-red-700 text-sm">
+                    <span id="confirm-error-msg"></span>
+                </div>
+            </div>
+            
+            <div class="flex gap-3">
+                <button onclick="cancelConfirmation()" class="flex-1 border border-gray-300 text-gray-700 font-medium py-3 rounded-lg hover:bg-gray-50 transition-colors">
+                    Batal
+                </button>
+                <button id="confirm-btn" onclick="confirmBooking()" class="flex-1 bg-seat-available hover:bg-blue-600 text-white font-medium py-3 rounded-lg transition-colors">
+                    Konfirmasi
+                </button>
+            </div>
+        </div>
+    </div>
+
+<script>
+    const regionConfig = {
+        'WLA': { name: 'Wing Left A', type: 'stepped', seatsPerRow: [10, 10, 10, 10, 10, 10, 10, 10], leanDirection: 'left' },
+        'WLB': { name: 'Wing Left B', type: 'stepped', seatsPerRow: [2, 4, 5, 7, 8, 9, 10, 10, 10], leanDirection: 'left' },
+        'CL': { name: 'Center Left', type: 'stepped', seatsPerRow: [11, 11, 11, 11, 11, 11, 11, 10, 9, 8, 6, 4, 2], leanDirection: 'right' },
+        'C': { name: 'Center', type: 'stepped', seatsPerRow: [10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 8], leanDirection: 'center' },
+        'CR': { name: 'Center Right', type: 'stepped', seatsPerRow: [11, 11, 11, 11, 11, 11, 11, 10, 9, 8, 6, 4, 2], leanDirection: 'left' },
+        'WRB': { name: 'Wing Right B', type: 'stepped', seatsPerRow: [2, 4, 5, 7, 8, 9, 10, 10, 10], leanDirection: 'right' },
+        'WRA': { name: 'Wing Right A', type: 'stepped', seatsPerRow: [10, 10, 10, 10, 10, 10, 10, 10], leanDirection: 'right' }
+    };
+
+    let bookedSeats = [];
+
+    function createSeat(region, number) {
+        const seat = document.createElement('div');
+        seat.className = 'w-8 h-8 bg-seat-available text-white text-xs flex items-center justify-center rounded cursor-pointer hover:bg-blue-600 transition-colors';
+        seat.textContent = number;
+        seat.dataset.seat = `${region}-${number}`;
+        seat.onclick = () => toggleSeat(seat);
+        return seat;
+    }
+
+    function initSteppedRegion(region) {
+        const container = document.getElementById(`${region}-container`);
+        if (!container) return;
+        
+        const config = regionConfig[region];
+        const leanDirection = config.leanDirection || 'left';
+        let seatNum = 1;
+        
+        container.className = 'flex flex-col gap-1';
+        if (leanDirection === 'left') {
+            container.classList.add('items-start');
+        } else if (leanDirection === 'right') {
+            container.classList.add('items-end');
+        } else {
+            container.classList.add('items-center');
+        }
+        
+        config.seatsPerRow.forEach((seatsInRow, rowIndex) => {
+            const rowDiv = document.createElement('div');
+            rowDiv.className = 'flex gap-1 flex-row-reverse';
+            
+            for (let i = 0; i < seatsInRow; i++) {
+                rowDiv.appendChild(createSeat(region, seatNum));
+                seatNum++;
+            }
+            container.appendChild(rowDiv);
+        });
+    }
+
+    function initSeats() {
+        Object.keys(regionConfig).forEach(region => {
+            initSteppedRegion(region);
+        });
+    }
+
+    function showRegion(region) {
+        document.querySelectorAll('.seat-region').forEach(el => el.classList.add('hidden'));
+        document.getElementById(`region-${region}`).classList.remove('hidden');
+        
+        document.querySelectorAll('.region-btn').forEach(btn => {
+            btn.classList.remove('bg-seat-available', 'text-white');
+            btn.classList.add('text-gray-600');
+        });
+        document.getElementById(`btn-${region}`).classList.add('bg-seat-available', 'text-white');
+        document.getElementById(`btn-${region}`).classList.remove('text-gray-600');
+        
+        document.getElementById('region-title').textContent = `Region: ${region} (${regionConfig[region].name})`;
+    }
+
+    function toggleSeat(seat) {
+        if (seat.classList.contains('bg-seat-booked')) return;
+        if (seat.classList.contains('bg-seat-selected')) {
+            seat.classList.remove('bg-seat-selected');
+            seat.classList.add('bg-seat-available');
+        } else {
+            seat.classList.remove('bg-seat-available');
+            seat.classList.add('bg-seat-selected');
+        }
+        updateBookingSection();
+    }
+
+    function updateBookingSection() {
+        const selected = document.querySelectorAll('[data-seat].bg-seat-selected');
+        const section = document.getElementById('booking-section');
+        const display = document.getElementById('selected-seats');
+        
+        if (selected.length > 0) {
+            section.classList.remove('hidden');
+            const seatNames = Array.from(selected).map(s => s.dataset.seat);
+            display.textContent = seatNames.join(', ');
+        } else {
+            section.classList.add('hidden');
+            display.textContent = '-';
+        }
+    }
+
+    function getSelectedSeats() {
+        const selected = document.querySelectorAll('[data-seat].bg-seat-selected');
+        return Array.from(selected).map(s => {
+            const [region, num] = s.dataset.seat.split('-');
+            return { region, number: parseInt(num) };
+        });
+    }
+
+    let pendingBooking = { name: '', phone: '', seats: [] };
+
+    function bookSeats() {
+        const name = document.getElementById('guest-name').value.trim();
+        const phone = document.getElementById('guest-phone').value.trim();
+        const seats = getSelectedSeats();
+        
+        if (!name) {
+            alert('Mohon masukkan nama lengkap Anda');
+            return;
+        }
+        if (!phone) {
+            alert('Mohon masukkan nomor HP');
+            return;
+        }
+        if (seats.length === 0) {
+            alert('Mohon pilih kursi terlebih dahulu');
+            return;
+        }
+        
+        pendingBooking = { name, phone, seats };
+        document.getElementById('confirm-name').textContent = name;
+        document.getElementById('confirm-phone').textContent = phone;
+        document.getElementById('confirm-seats').textContent = seats.map(s => `${s.region}-${s.number}`).join(', ');
+        document.getElementById('confirm-error').classList.add('hidden');
+        document.getElementById('confirm-status').classList.add('hidden');
+        document.getElementById('confirm-btn').disabled = false;
+        
+        // Render mini-map preview
+        renderSeatPreview(seats);
+        
+        document.getElementById('confirm-modal').classList.remove('hidden');
+    }
+    
+    function renderSeatPreview(seats) {
+        const previewMap = document.getElementById('seat-preview-map');
+        const regionOrder = ['WLA', 'WLB', 'CL', 'C', 'CR', 'WRB', 'WRA'];
+        
+        // Group seats by region
+        const seatsByRegion = {};
+        seats.forEach(s => {
+            if (!seatsByRegion[s.region]) seatsByRegion[s.region] = [];
+            seatsByRegion[s.region].push(s.number);
+        });
+        
+        // Build mini-map HTML
+        let html = '<div class="flex flex-col items-center gap-2">';
+        html += '<div class="text-gray-500 text-xs mb-1">🎭 PANGGUNG</div>';
+        html += '<div class="flex gap-2 flex-wrap justify-center">';
+        
+        regionOrder.forEach(region => {
+            const isSelected = seatsByRegion[region] && seatsByRegion[region].length > 0;
+            const bgColor = isSelected ? 'bg-green-500 text-white' : 'bg-gray-300 text-gray-500';
+            const seatNums = isSelected ? seatsByRegion[region].sort((a,b) => a-b).join(', ') : '';
+            
+            html += `<div class="flex flex-col items-center">`;
+            html += `<div class="w-10 h-8 ${bgColor} rounded text-xs flex items-center justify-center font-medium">${region}</div>`;
+            if (isSelected) {
+                html += `<div class="text-xs text-green-700 mt-1 max-w-16 text-center truncate" title="${seatNums}">${seatNums}</div>`;
+            }
+            html += `</div>`;
+        });
+        
+        html += '</div></div>';
+        previewMap.innerHTML = html;
+    }
+
+    function cancelConfirmation() {
+        document.getElementById('confirm-modal').classList.add('hidden');
+        pendingBooking = { name: '', phone: '', seats: [] };
+    }
+
+    async function confirmBooking() {
+        const { name, phone, seats } = pendingBooking;
+        const confirmBtn = document.getElementById('confirm-btn');
+        const statusEl = document.getElementById('confirm-status');
+        const errorEl = document.getElementById('confirm-error');
+        const errorMsg = document.getElementById('confirm-error-msg');
+        
+        confirmBtn.disabled = true;
+        statusEl.classList.remove('hidden');
+        errorEl.classList.add('hidden');
+        
+        try {
+            const checkRes = await fetch('/api/check-seats', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ seats })
+            });
+            const checkData = await checkRes.json();
+            
+            if (!checkData.available) {
+                statusEl.classList.add('hidden');
+                errorEl.classList.remove('hidden');
+                errorMsg.textContent = checkData.error || 'Beberapa kursi sudah dipesan. Silahkan pilih kursi lain.';
+                confirmBtn.disabled = false;
+                return;
+            }
+            
+            const res = await fetch('/api/book', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ name, phone, seats })
+            });
+            const data = await res.json();
+            
+            statusEl.classList.add('hidden');
+            
+            if (data.success) {
+                // Redirect to ticket page instead of showing modal
+                window.location.href = data.ticket_url;
+            } else {
+                errorEl.classList.remove('hidden');
+                errorMsg.textContent = data.error || 'Gagal memesan kursi';
+                confirmBtn.disabled = false;
+            }
+        } catch (err) {
+            statusEl.classList.add('hidden');
+            errorEl.classList.remove('hidden');
+            errorMsg.textContent = 'Terjadi kesalahan: ' + err;
+            confirmBtn.disabled = false;
+        }
+    }
+
+    async function loadBookedSeats() {
+        try {
+            const res = await fetch('/api/seats');
+            bookedSeats = await res.json();
+            markBookedSeats();
+        } catch (err) {
+            console.error('Failed to load booked seats:', err);
+        }
+    }
+
+    function markBookedSeats() {
+        bookedSeats.forEach(seat => {
+            const el = document.querySelector(`[data-seat="${seat.region}-${seat.number}"]`);
+            if (el) {
+                el.classList.remove('bg-seat-available', 'hover:bg-blue-600');
+                el.classList.add('bg-seat-booked', 'cursor-not-allowed');
+            }
+        });
+    }
+
+    document.addEventListener('DOMContentLoaded', async () => {
+        initSeats();
+        await loadBookedSeats();
+    });
+</script>
+</body>
+</html>
