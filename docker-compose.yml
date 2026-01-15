@@ -1,11 +1,9 @@
-version: '3.8'
-
 services:
   seats:
     build: .
     container_name: seats-app
     ports:
-      - "5000:5000"
+      - "6666:6666"
     volumes:
       # Mount source code for hot reload
       - .:/app
