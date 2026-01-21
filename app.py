@@ -26,7 +26,14 @@ app = Flask(__name__)
 # Configuration
 basedir = os.path.abspath(os.path.dirname(__file__))
 app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'yarsi-hippocratic-oath-2026')
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + os.path.join(basedir, 'seats.db')
+
+# Database configuration - PostgreSQL or SQLite fallback
+DATABASE_URL = os.getenv('DATABASE_URL')
+if DATABASE_URL:
+    app.config['SQLALCHEMY_DATABASE_URI'] = DATABASE_URL
+else:
+    app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + os.path.join(basedir, 'seats.db')
+
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 # Admin password from environment
