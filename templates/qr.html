@@ -25,12 +25,16 @@
     <p class="text-gray-500 text-sm">Scan QR code di atas untuk membuka halaman booking kursi</p>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <script>
     const siteUrl = "{{ site_url }}";
-    QRCode.toCanvas(document.createElement('canvas'), siteUrl, { width: 300, margin: 2 }, function (error, canvas) {
-        if (error) console.error(error);
-        document.getElementById('qrcode').appendChild(canvas);
+    new QRCode(document.getElementById('qrcode'), {
+        text: siteUrl,
+        width: 200,
+        height: 200,
+        colorDark: "#000000",
+        colorLight: "#ffffff",
+        correctLevel: QRCode.CorrectLevel.H
     });
 </script>
 {% endblock %}
