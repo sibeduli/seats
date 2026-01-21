@@ -1,5 +1,6 @@
 from flask import Flask, render_template, request, jsonify, session, redirect, url_for, Response
 from flask_sqlalchemy import SQLAlchemy
+from werkzeug.middleware.proxy_fix import ProxyFix
 from functools import wraps
 from datetime import datetime, timedelta, timezone
 from dotenv import load_dotenv
@@ -22,6 +23,7 @@ ADMIN_PHONE = os.getenv('ADMIN_PHONE', '6281234567890')
 ADMIN_PHONE_DISPLAY = os.getenv('ADMIN_PHONE_DISPLAY', '0812-3456-7890')
 
 app = Flask(__name__)
+app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1, x_prefix=1)
 
 # Configuration
 basedir = os.path.abspath(os.path.dirname(__file__))
