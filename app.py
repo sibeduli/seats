@@ -199,7 +199,7 @@ def booked_list():
 @app.route('/qr')
 @login_required
 def qr_page():
-    site_url = request.url_root.rstrip('/')
+    site_url = request.url_root.rstrip('/') + '/book'
     return render_template('qr.html', site_url=site_url)
 
 
