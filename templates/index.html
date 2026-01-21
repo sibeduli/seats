@@ -3,36 +3,36 @@
 {% block title %}Pilih Tempat Duduk - YARSI Hippocratic Oath{% endblock %}
 
 {% block content %}
-<div class="bg-white rounded-lg shadow-xl p-6 md:p-10 max-w-4xl w-full">
+<div class="bg-white rounded-lg shadow-xl p-4 sm:p-6 md:p-10 max-w-4xl w-full overflow-x-hidden">
     <!-- Header -->
-    <div class="text-center mb-6">
-        <h1 class="font-serif text-3xl md:text-4xl text-gray-800 mb-2">Pilih Tempat Duduk Anda</h1>
-        <p class="text-gray-500 text-sm md:text-base">BAIAT DOKTER MUSLIM - BATCH FEBRUARI 2026</p>
+    <div class="text-center mb-4 sm:mb-6">
+        <h1 class="font-serif text-2xl sm:text-3xl md:text-4xl text-gray-800 mb-1">Pilih Tempat Duduk Anda</h1>
+        <p class="text-gray-500 text-xs sm:text-sm md:text-base">BAIAT DOKTER MUSLIM - BATCH FEBRUARI 2026</p>
     </div>
 
     <!-- Region Selector -->
-    <div class="flex justify-center mb-6">
-        <div class="inline-flex bg-gray-100 rounded-lg p-1">
-            <button onclick="showRegion('WLA')" id="btn-WLA" class="region-btn px-4 py-2 text-sm font-medium rounded-md transition-all bg-seat-available text-white">WLA</button>
-            <button onclick="showRegion('WLB')" id="btn-WLB" class="region-btn px-4 py-2 text-sm font-medium rounded-md transition-all text-gray-600 hover:text-gray-800">WLB</button>
-            <button onclick="showRegion('CL')" id="btn-CL" class="region-btn px-4 py-2 text-sm font-medium rounded-md transition-all text-gray-600 hover:text-gray-800">CL</button>
-            <button onclick="showRegion('C')" id="btn-C" class="region-btn px-4 py-2 text-sm font-medium rounded-md transition-all text-gray-600 hover:text-gray-800">C</button>
-            <button onclick="showRegion('CR')" id="btn-CR" class="region-btn px-4 py-2 text-sm font-medium rounded-md transition-all text-gray-600 hover:text-gray-800">CR</button>
-            <button onclick="showRegion('WRB')" id="btn-WRB" class="region-btn px-4 py-2 text-sm font-medium rounded-md transition-all text-gray-600 hover:text-gray-800">WRB</button>
-            <button onclick="showRegion('WRA')" id="btn-WRA" class="region-btn px-4 py-2 text-sm font-medium rounded-md transition-all text-gray-600 hover:text-gray-800">WRA</button>
+    <div class="flex justify-center mb-4 sm:mb-6">
+        <div class="inline-flex bg-gray-100 rounded-lg p-1 flex-wrap justify-center gap-0.5">
+            <button onclick="showRegion('WLA')" id="btn-WLA" class="region-btn px-2.5 py-1.5 text-xs font-medium rounded-md transition-all bg-seat-available text-white">WLA</button>
+            <button onclick="showRegion('WLB')" id="btn-WLB" class="region-btn px-2.5 py-1.5 text-xs font-medium rounded-md transition-all text-gray-600 hover:text-gray-800">WLB</button>
+            <button onclick="showRegion('CL')" id="btn-CL" class="region-btn px-2.5 py-1.5 text-xs font-medium rounded-md transition-all text-gray-600 hover:text-gray-800">CL</button>
+            <button onclick="showRegion('C')" id="btn-C" class="region-btn px-2.5 py-1.5 text-xs font-medium rounded-md transition-all text-gray-600 hover:text-gray-800">C</button>
+            <button onclick="showRegion('CR')" id="btn-CR" class="region-btn px-2.5 py-1.5 text-xs font-medium rounded-md transition-all text-gray-600 hover:text-gray-800">CR</button>
+            <button onclick="showRegion('WRB')" id="btn-WRB" class="region-btn px-2.5 py-1.5 text-xs font-medium rounded-md transition-all text-gray-600 hover:text-gray-800">WRB</button>
+            <button onclick="showRegion('WRA')" id="btn-WRA" class="region-btn px-2.5 py-1.5 text-xs font-medium rounded-md transition-all text-gray-600 hover:text-gray-800">WRA</button>
         </div>
     </div>
 
     <!-- Stage -->
-    <div class="bg-gray-200 text-gray-600 text-center py-3 rounded mb-6 uppercase tracking-widest text-sm font-medium">
+    <div class="bg-gray-200 text-gray-600 text-center py-2 rounded mb-4 uppercase tracking-widest text-xs font-medium">
         Stage
     </div>
 
     <!-- Region Title -->
-    <div class="text-center mb-4 flex items-center justify-center gap-4">
-        <span id="region-title" class="text-lg font-medium text-gray-700">Region: WLA (Wing Left A)</span>
-        <a href="/static/assets/image.png" target="_blank" class="inline-flex items-center gap-1 px-3 py-1 bg-gray-100 hover:bg-gray-200 text-gray-600 text-sm rounded transition-colors">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <div class="text-center mb-4 flex flex-col sm:flex-row items-center justify-center gap-2">
+        <span id="region-title" class="text-sm sm:text-lg font-medium text-gray-700">Region: WLA (Wing Left A)</span>
+        <a href="/static/assets/image.png" target="_blank" class="inline-flex items-center gap-1 px-2 py-1 bg-gray-100 hover:bg-gray-200 text-gray-600 text-xs rounded transition-colors">
+            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"/>
             </svg>
             Full Map
@@ -40,70 +40,72 @@
     </div>
 
     <!-- Seat Grids -->
-    <div id="seat-container" class="flex justify-center mb-6">
-        <!-- WLA: Stepped layout -->
-        <div id="region-WLA" class="seat-region">
-            <div class="flex flex-col gap-1 items-start" id="WLA-container"></div>
-        </div>
+    <div class="overflow-x-auto mb-6">
+        <div id="seat-container" class="flex justify-center min-w-max">
+            <!-- WLA: Stepped layout -->
+            <div id="region-WLA" class="seat-region">
+                <div class="flex flex-col gap-1 items-start" id="WLA-container"></div>
+            </div>
 
-        <!-- WLB: Stepped layout, seats 1-70 -->
-        <div id="region-WLB" class="seat-region hidden">
-            <div class="flex flex-col gap-1 items-start" id="WLB-container"></div>
-        </div>
+            <!-- WLB: Stepped layout, seats 1-70 -->
+            <div id="region-WLB" class="seat-region hidden">
+                <div class="flex flex-col gap-1 items-start" id="WLB-container"></div>
+            </div>
 
-        <!-- CL: Stepped layout -->
-        <div id="region-CL" class="seat-region hidden">
-            <div class="flex flex-col gap-1 items-start" id="CL-container"></div>
-        </div>
+            <!-- CL: Stepped layout -->
+            <div id="region-CL" class="seat-region hidden">
+                <div class="flex flex-col gap-1 items-start" id="CL-container"></div>
+            </div>
 
-        <!-- C: Stepped layout -->
-        <div id="region-C" class="seat-region hidden">
-            <div class="flex flex-col gap-1 items-start" id="C-container"></div>
-        </div>
+            <!-- C: Stepped layout -->
+            <div id="region-C" class="seat-region hidden">
+                <div class="flex flex-col gap-1 items-start" id="C-container"></div>
+            </div>
 
-        <!-- CR: Stepped layout -->
-        <div id="region-CR" class="seat-region hidden">
-            <div class="flex flex-col gap-1 items-start" id="CR-container"></div>
-        </div>
+            <!-- CR: Stepped layout -->
+            <div id="region-CR" class="seat-region hidden">
+                <div class="flex flex-col gap-1 items-start" id="CR-container"></div>
+            </div>
 
-        <!-- WRB: Stepped layout -->
-        <div id="region-WRB" class="seat-region hidden">
-            <div class="flex flex-col gap-1 items-start" id="WRB-container"></div>
-        </div>
+            <!-- WRB: Stepped layout -->
+            <div id="region-WRB" class="seat-region hidden">
+                <div class="flex flex-col gap-1 items-start" id="WRB-container"></div>
+            </div>
 
-        <!-- WRA: Stepped layout -->
-        <div id="region-WRA" class="seat-region hidden">
-            <div class="flex flex-col gap-1 items-start" id="WRA-container"></div>
+            <!-- WRA: Stepped layout -->
+            <div id="region-WRA" class="seat-region hidden">
+                <div class="flex flex-col gap-1 items-start" id="WRA-container"></div>
+            </div>
         </div>
     </div>
 
     <!-- Legend -->
-    <div class="flex justify-center items-center gap-8 text-sm text-gray-600 mb-6">
-        <div class="flex items-center gap-2">
-            <div class="w-4 h-4 bg-seat-available rounded"></div>
+    <div class="flex flex-wrap justify-center items-center gap-3 sm:gap-4 md:gap-8 text-xs sm:text-sm text-gray-600 mb-4 sm:mb-6">
+        <div class="flex items-center gap-1.5">
+            <div class="w-3 h-3 sm:w-4 sm:h-4 bg-seat-available rounded"></div>
             <span>Tersedia</span>
         </div>
-        <div class="flex items-center gap-2">
-            <div class="w-4 h-4 bg-seat-selected rounded"></div>
+        <div class="flex items-center gap-1.5">
+            <div class="w-3 h-3 sm:w-4 sm:h-4 bg-seat-selected rounded"></div>
             <span>Pilihan Anda</span>
         </div>
-        <div class="flex items-center gap-2">
-            <div class="w-4 h-4 bg-seat-booked rounded"></div>
+        <div class="flex items-center gap-1.5">
+            <div class="w-3 h-3 sm:w-4 sm:h-4 bg-seat-booked rounded"></div>
             <span>Sudah Dipesan</span>
         </div>
     </div>
 
     <!-- Booking Form -->
-    <div id="booking-section" class="border-t pt-6 hidden">
-        <div class="text-center mb-4">
-            <p class="text-gray-700">Kursi dipilih: <span id="selected-seats" class="font-medium">-</span></p>
+    <div id="booking-section" class="border-t pt-4 sm:pt-6 hidden">
+        <div class="text-center mb-3 sm:mb-4">
+            <p class="text-sm sm:text-base text-gray-700">Kursi dipilih: <span id="selected-seats" class="font-medium">-</span></p>
         </div>
         <div class="max-w-md mx-auto">
             <input type="text" id="guest-name" placeholder="Masukkan nama peserta..." 
-                   class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 mb-3">
+                   class="w-full px-3 sm:px-4 py-2.5 sm:py-3 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 mb-2 sm:mb-3">
             <input type="tel" id="guest-phone" placeholder="Masukkan nomor HP (contoh: 08123456789)" 
-                   class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 mb-4">
-            <button onclick="bookSeats()" class="w-full bg-seat-available hover:bg-blue-600 text-white font-medium py-3 rounded-lg transition-colors">
+                   class="w-full px-3 sm:px-4 py-2.5 sm:py-3 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 mb-3 sm:mb-4">
+            <button onclick="bookSeats()" class="w-full bg-seat-available hover:bg-blue-600 text-white font-medium py-2.5 sm:py-3 text-sm sm:text-base rounded-lg transition-colors">
                 Pesan Kursi
             </button>
         </div>
@@ -203,7 +205,7 @@
 
     function createSeat(region, num) {
         const seat = document.createElement('button');
-        seat.className = 'w-8 h-8 text-xs font-medium rounded bg-seat-available text-white hover:bg-blue-600 transition-colors';
+        seat.className = 'w-8 h-8 text-xs font-medium rounded bg-seat-available text-white transition-colors select-none';
         seat.textContent = num;
         seat.dataset.seat = `${region}-${num}`;
         seat.onclick = () => toggleSeat(seat);
@@ -212,7 +214,7 @@
 
     function createSeatWithRow(region, row, num) {
         const seat = document.createElement('button');
-        seat.className = 'w-8 h-8 text-xs font-medium rounded bg-seat-available text-white hover:bg-blue-600 transition-colors';
+        seat.className = 'w-8 h-8 text-xs font-medium rounded bg-seat-available text-white transition-colors select-none';
         seat.textContent = num;
         seat.dataset.seat = `${region}-${row}${num}`;
         seat.onclick = () => toggleSeat(seat);
