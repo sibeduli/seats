@@ -178,13 +178,18 @@ def booked_list():
     
     if search:
         # Search by name, phone, or seat (e.g., "WLA-5" or "WLA" or "5")
-        query = query.join(Seat).filter(
-            (Transaction.name.ilike(f'%{search}%')) | 
-            (Transaction.phone.ilike(f'%{search}%')) |
+        # Use subquery to avoid PostgreSQL DISTINCT/ORDER BY issue
+        matching_seat_ids = db.session.query(Seat.id).filter(
             (Seat.region.ilike(f'%{search}%')) |
             (db.cast(Seat.seat_number, db.String).like(f'%{search}%')) |
             ((Seat.region + '-' + db.cast(Seat.seat_number, db.String)).ilike(f'%{search}%'))
-        ).distinct()
+        ).subquery()
+        
+        query = query.filter(
+            (Transaction.name.ilike(f'%{search}%')) | 
+            (Transaction.phone.ilike(f'%{search}%')) |
+            (Transaction.seat_id.in_(db.select(matching_seat_ids)))
+        )
     
     pagination = query.order_by(
         status_order,
