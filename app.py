@@ -117,21 +117,28 @@ class Seat(db.Model):
 
 def expire_pending_tickets():
     """Auto-expire pending tickets older than PENDING_TIMEOUT_MINUTES"""
-    cutoff = datetime.now(timezone.utc).replace(tzinfo=None) - timedelta(minutes=PENDING_TIMEOUT_MINUTES)
-    expired = Transaction.query.filter(
-        Transaction.status == 'pending',
-        Transaction.timestamp < cutoff
-    ).all()
-    
-    for transaction in expired:
-        transaction.status = 'expired'
-        for seat in transaction.seats:
-            seat.transaction_id = None
-    
-    if expired:
-        db.session.commit()
-    
-    return len(expired)
+    try:
+        cutoff = datetime.now(timezone.utc).replace(tzinfo=None) - timedelta(minutes=PENDING_TIMEOUT_MINUTES)
+        # Lock rows to prevent race conditions during expiration
+        expired = Transaction.query.filter(
+            Transaction.status == 'pending',
+            Transaction.timestamp < cutoff
+        ).with_for_update().all()
+        
+        for transaction in expired:
+            transaction.status = 'expired'
+            # Lock seats before freeing
+            for seat in Seat.query.filter_by(transaction_id=transaction.id).with_for_update().all():
+                seat.transaction_id = None
+        
+        if expired:
+            db.session.commit()
+        
+        return len(expired)
+    except Exception as e:
+        db.session.rollback()
+        logger.error(f"Expire tickets error: {str(e)}")
+        return 0
 
 
 @app.route('/login', methods=['GET', 'POST'])
@@ -374,49 +381,71 @@ def book_seats():
 @api_login_required
 def approve_transaction(transaction_id):
     """Approve a pending transaction"""
-    transaction = Transaction.query.get_or_404(transaction_id)
-    if transaction.status != 'pending':
-        return jsonify({'error': 'Transaction is not pending'}), 400
-    transaction.status = 'active'
-    db.session.commit()
-    
-    seats = [f"{s.region}-{s.seat_number}" for s in transaction.seats]
-    logger.info(f"APPROVE: id={transaction_id}, name={transaction.name}, seats={seats}, hash={transaction.ticket_hash}")
-    return jsonify({'success': True})
+    try:
+        transaction = Transaction.query.with_for_update().get(transaction_id)
+        if not transaction:
+            return jsonify({'error': 'Transaction not found'}), 404
+        if transaction.status != 'pending':
+            db.session.rollback()
+            return jsonify({'error': 'Transaction is not pending'}), 400
+        transaction.status = 'active'
+        db.session.commit()
+        
+        seats = [f"{s.region}-{s.seat_number}" for s in transaction.seats]
+        logger.info(f"APPROVE: id={transaction_id}, name={transaction.name}, seats={seats}, hash={transaction.ticket_hash}")
+        return jsonify({'success': True})
+    except Exception as e:
+        db.session.rollback()
+        logger.error(f"Approve error: {str(e)}")
+        return jsonify({'error': 'Terjadi kesalahan'}), 500
 
 
 @app.route('/api/reject/<int:transaction_id>', methods=['POST'])
 @api_login_required
 def reject_transaction(transaction_id):
     """Reject a pending transaction and free seats"""
-    transaction = Transaction.query.get_or_404(transaction_id)
-    seats = [f"{s.region}-{s.seat_number}" for s in transaction.seats]
-    transaction.status = 'revoked'
-    
-    # Free the seats
-    for seat in transaction.seats:
-        seat.transaction_id = None
-    
-    db.session.commit()
-    logger.info(f"REJECT: id={transaction_id}, name={transaction.name}, seats={seats}, hash={transaction.ticket_hash}")
-    return jsonify({'success': True})
+    try:
+        transaction = Transaction.query.with_for_update().get(transaction_id)
+        if not transaction:
+            return jsonify({'error': 'Transaction not found'}), 404
+        seats = [f"{s.region}-{s.seat_number}" for s in transaction.seats]
+        transaction.status = 'revoked'
+        
+        # Free the seats with locking
+        for seat in Seat.query.filter_by(transaction_id=transaction_id).with_for_update().all():
+            seat.transaction_id = None
+        
+        db.session.commit()
+        logger.info(f"REJECT: id={transaction_id}, name={transaction.name}, seats={seats}, hash={transaction.ticket_hash}")
+        return jsonify({'success': True})
+    except Exception as e:
+        db.session.rollback()
+        logger.error(f"Reject error: {str(e)}")
+        return jsonify({'error': 'Terjadi kesalahan'}), 500
 
 
 @app.route('/api/revoke/<int:transaction_id>', methods=['POST'])
 @api_login_required
 def revoke_transaction(transaction_id):
     """Revoke an active transaction and free seats"""
-    transaction = Transaction.query.get_or_404(transaction_id)
-    seats = [f"{s.region}-{s.seat_number}" for s in transaction.seats]
-    transaction.status = 'revoked'
-    
-    # Free the seats
-    for seat in transaction.seats:
-        seat.transaction_id = None
-    
-    db.session.commit()
-    logger.info(f"REVOKE: id={transaction_id}, name={transaction.name}, seats={seats}, hash={transaction.ticket_hash}")
-    return jsonify({'success': True})
+    try:
+        transaction = Transaction.query.with_for_update().get(transaction_id)
+        if not transaction:
+            return jsonify({'error': 'Transaction not found'}), 404
+        seats = [f"{s.region}-{s.seat_number}" for s in transaction.seats]
+        transaction.status = 'revoked'
+        
+        # Free the seats with locking
+        for seat in Seat.query.filter_by(transaction_id=transaction_id).with_for_update().all():
+            seat.transaction_id = None
+        
+        db.session.commit()
+        logger.info(f"REVOKE: id={transaction_id}, name={transaction.name}, seats={seats}, hash={transaction.ticket_hash}")
+        return jsonify({'success': True})
+    except Exception as e:
+        db.session.rollback()
+        logger.error(f"Revoke error: {str(e)}")
+        return jsonify({'error': 'Terjadi kesalahan'}), 500
 
 
 def broadcast_event(event_type, data):
