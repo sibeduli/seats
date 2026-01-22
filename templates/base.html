@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}YARSI Hippocratic Oath{% endblock %}</title>
+    <link rel="icon" type="image/png" href="/static/assets/favicon.png">
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -54,7 +55,7 @@
                 
                 <!-- Desktop menu -->
                 <div class="hidden md:flex items-center space-x-6">
-                    <a href="/" class="text-gray-300 hover:text-white transition-colors {% if request.endpoint == 'index' %}text-white font-medium{% endif %}">Seat Booking</a>
+                    <a href="/admin" class="text-gray-300 hover:text-white transition-colors {% if request.endpoint == 'index' %}text-white font-medium{% endif %}">Seat Booking</a>
                     <a href="/booked" class="text-gray-300 hover:text-white transition-colors {% if request.endpoint == 'booked_list' %}text-white font-medium{% endif %}">Booked List</a>
                     <a href="/qr" class="text-gray-300 hover:text-white transition-colors {% if request.endpoint == 'qr_page' %}text-white font-medium{% endif %}">QR</a>
                     {% if session.get('logged_in') %}
@@ -66,7 +67,7 @@
             <!-- Mobile menu -->
             <div id="mobile-menu" class="hidden md:hidden mt-3 pt-3 border-t border-gray-700">
                 <div class="flex flex-col space-y-3">
-                    <a href="/" class="text-gray-300 hover:text-white transition-colors {% if request.endpoint == 'index' %}text-white font-medium{% endif %}">Seat Booking</a>
+                    <a href="/admin" class="text-gray-300 hover:text-white transition-colors {% if request.endpoint == 'index' %}text-white font-medium{% endif %}">Seat Booking</a>
                     <a href="/booked" class="text-gray-300 hover:text-white transition-colors {% if request.endpoint == 'booked_list' %}text-white font-medium{% endif %}">Booked List</a>
                     <a href="/qr" class="text-gray-300 hover:text-white transition-colors {% if request.endpoint == 'qr_page' %}text-white font-medium{% endif %}">QR</a>
                     {% if session.get('logged_in') %}

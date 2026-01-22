@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BAIAT DOKTER MUSLIM - YARSI 2026</title>
+    <link rel="icon" type="image/png" href="/static/assets/favicon.png">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        'serif': ['Playfair Display', 'serif'],
+                        'sans': ['Inter', 'sans-serif'],
+                    },
+                    colors: {
+                        'dark-bg': '#21393b',
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="min-h-screen bg-dark-bg flex flex-col items-center justify-center p-4 font-sans">
+    <div class="text-center max-w-md w-full flex-1 flex flex-col justify-center">
+        <!-- Header -->
+        <div class="mb-10">
+            <h1 class="font-serif text-3xl md:text-4xl text-white mb-2">BAIAT DOKTER MUSLIM</h1>
+            <p class="text-gray-400 text-sm md:text-base">YARSI - BATCH FEBRUARI 2026</p>
+        </div>
+
+        <!-- Main CTA - Guest Booking -->
+        <a href="/book" class="group relative block w-full bg-white text-dark-bg font-semibold py-4 px-6 rounded-lg shadow-lg hover:shadow-xl transition-all overflow-hidden">
+            <div class="absolute inset-0 opacity-30">
+                <svg class="w-full h-full" viewBox="0 0 400 100" preserveAspectRatio="none">
+                    <path d="M0,50 Q100,20 200,50 T400,50 L400,100 L0,100 Z" fill="#a7f3d0"/>
+                    <path d="M0,60 Q100,40 200,60 T400,60 L400,100 L0,100 Z" fill="#6ee7b7"/>
+                </svg>
+            </div>
+            <div class="relative">
+                <span class="text-lg">Pesan Kursi</span>
+                <p class="text-sm text-gray-500 mt-1">Untuk Tamu Undangan</p>
+            </div>
+        </a>
+    </div>
+
+    <!-- Admin link - fixed at bottom -->
+    <a href="/login" class="bg-white/10 text-gray-400 text-xs px-4 py-2 rounded hover:bg-white/20 transition-all mb-4">
+        Saya Panitia
+    </a>
+</body>
+</html>

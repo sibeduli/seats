@@ -123,14 +123,14 @@ def expire_pending_tickets():
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if session.get('logged_in'):
-        return redirect(url_for('index'))
+        return redirect('/admin')
     
     error = None
     if request.method == 'POST':
         password = request.form.get('password', '')
         if hashlib.sha256(password.encode()).hexdigest() == ADMIN_PASSWORD_HASH:
             session['logged_in'] = True
-            return redirect(url_for('index'))
+            return redirect('/admin')
         else:
             error = 'Password salah'
     
@@ -144,6 +144,12 @@ def logout():
 
 
 @app.route('/')
+def welcome():
+    """Public landing page"""
+    return render_template('welcome.html')
+
+
+@app.route('/admin')
 @login_required
 def index():
     return render_template('index.html')
