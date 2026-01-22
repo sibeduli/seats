@@ -178,17 +178,22 @@ def booked_list():
     
     if search:
         # Search by name, phone, or seat (e.g., "WLA-5" or "WLA" or "5")
-        # Use subquery to avoid PostgreSQL DISTINCT/ORDER BY issue
-        matching_seat_ids = db.session.query(Seat.id).filter(
-            (Seat.region.ilike(f'%{search}%')) |
-            (db.cast(Seat.seat_number, db.String).like(f'%{search}%')) |
-            ((Seat.region + '-' + db.cast(Seat.seat_number, db.String)).ilike(f'%{search}%'))
-        ).subquery()
+        # Get transaction IDs that match seat search
+        seat_match_ids = [s.transaction_id for s in Seat.query.filter(
+            Seat.transaction_id.isnot(None),
+            db.or_(
+                Seat.region.ilike(f'%{search}%'),
+                db.cast(Seat.seat_number, db.String).ilike(f'%{search}%'),
+                (Seat.region + '-' + db.cast(Seat.seat_number, db.String)).ilike(f'%{search}%')
+            )
+        ).all()]
         
         query = query.filter(
-            (Transaction.name.ilike(f'%{search}%')) | 
-            (Transaction.phone.ilike(f'%{search}%')) |
-            (Transaction.seat_id.in_(db.select(matching_seat_ids)))
+            db.or_(
+                Transaction.name.ilike(f'%{search}%'),
+                Transaction.phone.ilike(f'%{search}%'),
+                Transaction.id.in_(seat_match_ids) if seat_match_ids else False
+            )
         )
     
     pagination = query.order_by(
@@ -279,35 +284,43 @@ def book_seats():
     if not name or not phone or not seats:
         return jsonify({'error': 'Name, phone and seats required'}), 400
     
-    # Check if seats are available
-    for seat_data in seats:
-        existing = Seat.query.filter_by(
-            region=seat_data['region'],
-            seat_number=seat_data['number']
-        ).first()
-        if existing and existing.transaction_id:
-            if existing.transaction.status in ('active', 'pending'):
-                return jsonify({'error': f"Seat {seat_data['region']}-{seat_data['number']} already booked"}), 400
-    
-    # Create transaction - active if admin, pending if guest
-    ticket_hash = secrets.token_hex(16)
-    status = 'active' if is_admin else 'pending'
-    transaction = Transaction(ticket_hash=ticket_hash, name=name, phone=phone, status=status, booked_by_admin=is_admin)
-    db.session.add(transaction)
-    db.session.flush()  # Get transaction ID
-    
-    # Book seats
-    for seat_data in seats:
-        seat = Seat.query.filter_by(
-            region=seat_data['region'],
-            seat_number=seat_data['number']
-        ).first()
-        if not seat:
-            seat = Seat(region=seat_data['region'], seat_number=seat_data['number'])
-            db.session.add(seat)
-        seat.transaction_id = transaction.id
-    
-    db.session.commit()
+    try:
+        # Check and book seats atomically with row-level locking
+        for seat_data in seats:
+            # Use FOR UPDATE to lock the row (PostgreSQL) or just check (SQLite)
+            existing = Seat.query.filter_by(
+                region=seat_data['region'],
+                seat_number=seat_data['number']
+            ).with_for_update().first()
+            
+            if existing and existing.transaction_id:
+                if existing.transaction.status in ('active', 'pending'):
+                    db.session.rollback()
+                    return jsonify({'error': f"Kursi {seat_data['region']}-{seat_data['number']} sudah dipesan"}), 400
+        
+        # Create transaction - active if admin, pending if guest
+        ticket_hash = secrets.token_hex(16)
+        status = 'active' if is_admin else 'pending'
+        transaction = Transaction(ticket_hash=ticket_hash, name=name, phone=phone, status=status, booked_by_admin=is_admin)
+        db.session.add(transaction)
+        db.session.flush()  # Get transaction ID
+        
+        # Book seats
+        for seat_data in seats:
+            seat = Seat.query.filter_by(
+                region=seat_data['region'],
+                seat_number=seat_data['number']
+            ).first()
+            if not seat:
+                seat = Seat(region=seat_data['region'], seat_number=seat_data['number'])
+                db.session.add(seat)
+            seat.transaction_id = transaction.id
+        
+        db.session.commit()
+    except Exception as e:
+        db.session.rollback()
+        logger.error(f"Booking error: {str(e)}")
+        return jsonify({'error': 'Terjadi kesalahan, silakan coba lagi'}), 500
     
     # Log the booking
     seat_list = [f"{s['region']}-{s['number']}" for s in seats]
