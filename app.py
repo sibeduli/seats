@@ -14,8 +14,10 @@ import logging
 # Load environment variables
 load_dotenv()
 
-# Event queue for SSE notifications
+# Event queue for SSE notifications (thread-safe)
+import threading
 event_queues = []
+event_queues_lock = threading.Lock()
 
 # Configuration from environment
 PENDING_TIMEOUT_MINUTES = int(os.getenv('PENDING_TIMEOUT_MINUTES', 30))
@@ -418,16 +420,17 @@ def revoke_transaction(transaction_id):
 
 
 def broadcast_event(event_type, data):
-    """Broadcast event to all connected SSE clients"""
+    """Broadcast event to all connected SSE clients (thread-safe)"""
     message = f"event: {event_type}\ndata: {json.dumps(data)}\n\n"
-    dead_queues = []
-    for q in event_queues:
-        try:
-            q.put_nowait(message)
-        except:
-            dead_queues.append(q)
-    for q in dead_queues:
-        event_queues.remove(q)
+    with event_queues_lock:
+        dead_queues = []
+        for q in event_queues:
+            try:
+                q.put_nowait(message)
+            except:
+                dead_queues.append(q)
+        for q in dead_queues:
+            event_queues.remove(q)
 
 
 @app.route('/api/events')
@@ -436,7 +439,8 @@ def sse_events():
     """SSE endpoint for real-time admin notifications"""
     def event_stream():
         q = queue.Queue()
-        event_queues.append(q)
+        with event_queues_lock:
+            event_queues.append(q)
         try:
             while True:
                 try:
@@ -449,8 +453,9 @@ def sse_events():
         except GeneratorExit:
             pass
         finally:
-            if q in event_queues:
-                event_queues.remove(q)
+            with event_queues_lock:
+                if q in event_queues:
+                    event_queues.remove(q)
     
     return Response(event_stream(), mimetype='text/event-stream', headers={
         'Cache-Control': 'no-cache',
