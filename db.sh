@@ -114,16 +114,73 @@ list() {
     echo -e "Total: ${GREEN}$COUNT${NC} backup(s)"
 }
 
+stats() {
+    echo -e "${YELLOW}Database Statistics${NC}"
+    echo "========================================"
+    
+    psql $PG_CONN "$DB_NAME" -t -c "
+    SELECT 
+        'Total Bookings' as metric, COUNT(*) as value FROM transaction
+    UNION ALL
+    SELECT 'Total Seats', COUNT(*) FROM seat WHERE transaction_id IS NOT NULL
+    UNION ALL
+    SELECT 'Active', COUNT(*) FROM transaction WHERE status = 'active'
+    UNION ALL
+    SELECT 'Pending', COUNT(*) FROM transaction WHERE status = 'pending'
+    UNION ALL
+    SELECT 'Expired', COUNT(*) FROM transaction WHERE status = 'expired'
+    UNION ALL
+    SELECT 'Revoked', COUNT(*) FROM transaction WHERE status = 'revoked'
+    " | while read line; do
+        if [ -n "$line" ]; then
+            metric=$(echo "$line" | cut -d'|' -f1 | xargs)
+            value=$(echo "$line" | cut -d'|' -f2 | xargs)
+            printf "%-20s: ${GREEN}%s${NC}\n" "$metric" "$value"
+        fi
+    done
+    
+    echo "========================================"
+}
+
+export_csv() {
+    TIMESTAMP=$(date +%Y%m%d_%H%M%S)
+    EXPORT_DIR="$BACKUP_DIR/export_${TIMESTAMP}"
+    mkdir -p "$EXPORT_DIR"
+    
+    echo -e "${YELLOW}Exporting current database to CSV...${NC}"
+    echo -e "Source: ${GREEN}$DB_NAME${NC} @ $DB_HOST:$DB_PORT"
+    
+    # Export transactions
+    psql $PG_CONN "$DB_NAME" -c "\COPY (SELECT id, ticket_hash, name, phone, status, timestamp, booked_by_admin FROM transaction ORDER BY id) TO '$EXPORT_DIR/transactions.csv' WITH CSV HEADER"
+    
+    # Export seats
+    psql $PG_CONN "$DB_NAME" -c "\COPY (SELECT id, region, seat_number, transaction_id FROM seat ORDER BY id) TO '$EXPORT_DIR/seats.csv' WITH CSV HEADER"
+    
+    # Export combined view (transactions with seats)
+    psql $PG_CONN "$DB_NAME" -c "\COPY (SELECT t.id, t.ticket_hash, t.name, t.phone, t.status, t.timestamp, t.booked_by_admin, s.region || '-' || s.seat_number as seat FROM transaction t LEFT JOIN seat s ON s.transaction_id = t.id ORDER BY t.id, s.region, s.seat_number) TO '$EXPORT_DIR/bookings_full.csv' WITH CSV HEADER"
+    
+    if [ $? -eq 0 ]; then
+        echo -e "${GREEN}Export completed!${NC}"
+        echo "Files created in: $EXPORT_DIR"
+        ls -lh "$EXPORT_DIR"
+    else
+        echo -e "${RED}Export failed!${NC}"
+        exit 1
+    fi
+}
+
 usage() {
     echo "Database Management Script"
     echo ""
     echo "Usage: ./db.sh [command]"
     echo ""
     echo "Commands:"
-    echo "  backup    Create a new database backup"
+    echo "  backup    Create a new database backup (.sql)"
     echo "  restore   Restore database from a backup file"
     echo "  clean     Delete all data from database (with confirmation)"
     echo "  list      List all available backups"
+    echo "  export    Export data to CSV files (Excel compatible)"
+    echo "  stats     Show database statistics"
     echo ""
     echo "Examples:"
     echo "  ./db.sh backup"
@@ -145,6 +202,12 @@ case "$1" in
         ;;
     list)
         list
+        ;;
+    export)
+        export_csv
+        ;;
+    stats)
+        stats
         ;;
     *)
         usage
