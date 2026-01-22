@@ -444,11 +444,10 @@ def book_seats():
 def approve_transaction(transaction_id):
     """Approve a pending transaction"""
     try:
-        transaction = Transaction.query.with_for_update().get(transaction_id)
+        transaction = Transaction.query.get(transaction_id)
         if not transaction:
             return jsonify({'error': 'Transaction not found'}), 404
         if transaction.status != 'pending':
-            db.session.rollback()
             return jsonify({'error': 'Transaction is not pending'}), 400
         transaction.status = 'active'
         db.session.commit()
@@ -467,14 +466,14 @@ def approve_transaction(transaction_id):
 def reject_transaction(transaction_id):
     """Reject a pending transaction and free seats"""
     try:
-        transaction = Transaction.query.with_for_update().get(transaction_id)
+        transaction = Transaction.query.get(transaction_id)
         if not transaction:
             return jsonify({'error': 'Transaction not found'}), 404
         seats = [f"{s.region}-{s.seat_number}" for s in transaction.seats]
         transaction.status = 'revoked'
         
-        # Free the seats with locking
-        for seat in Seat.query.filter_by(transaction_id=transaction_id).with_for_update().all():
+        # Free the seats
+        for seat in transaction.seats:
             seat.transaction_id = None
         
         db.session.commit()
@@ -491,14 +490,14 @@ def reject_transaction(transaction_id):
 def revoke_transaction(transaction_id):
     """Revoke an active transaction and free seats"""
     try:
-        transaction = Transaction.query.with_for_update().get(transaction_id)
+        transaction = Transaction.query.get(transaction_id)
         if not transaction:
             return jsonify({'error': 'Transaction not found'}), 404
         seats = [f"{s.region}-{s.seat_number}" for s in transaction.seats]
         transaction.status = 'revoked'
         
-        # Free the seats with locking
-        for seat in Seat.query.filter_by(transaction_id=transaction_id).with_for_update().all():
+        # Free the seats
+        for seat in transaction.seats:
             seat.transaction_id = None
         
         db.session.commit()
