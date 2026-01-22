@@ -19,6 +19,39 @@ import threading
 event_queues = []
 event_queues_lock = threading.Lock()
 
+# Simple rate limiting (in-memory, resets on restart)
+from collections import defaultdict
+import time
+rate_limit_store = defaultdict(list)
+rate_limit_lock = threading.Lock()
+
+def is_rate_limited(ip, max_requests=10, window_seconds=60):
+    """Check if IP has exceeded rate limit"""
+    now = time.time()
+    with rate_limit_lock:
+        # Clean old entries
+        rate_limit_store[ip] = [t for t in rate_limit_store[ip] if now - t < window_seconds]
+        if len(rate_limit_store[ip]) >= max_requests:
+            return True
+        rate_limit_store[ip].append(now)
+        return False
+
+
+import re
+import unicodedata
+
+def sanitize_text(text):
+    """Remove invisible/problematic unicode characters and normalize whitespace"""
+    if not text:
+        return ''
+    # Normalize unicode (NFKC converts weird chars to normal equivalents)
+    text = unicodedata.normalize('NFKC', text)
+    # Remove zero-width and invisible characters
+    text = re.sub(r'[\u200b-\u200f\u2028-\u202f\u2060-\u206f\ufeff]', '', text)
+    # Normalize whitespace (multiple spaces, tabs, etc. to single space)
+    text = re.sub(r'\s+', ' ', text)
+    return text.strip()
+
 # Configuration from environment
 PENDING_TIMEOUT_MINUTES = int(os.getenv('PENDING_TIMEOUT_MINUTES', 30))
 ADMIN_PHONE = os.getenv('ADMIN_PHONE', '6281234567890')
@@ -148,12 +181,17 @@ def login():
     
     error = None
     if request.method == 'POST':
-        password = request.form.get('password', '')
-        if hashlib.sha256(password.encode()).hexdigest() == ADMIN_PASSWORD_HASH:
-            session['logged_in'] = True
-            return redirect('/admin')
+        # Rate limit login attempts (5 per minute per IP)
+        client_ip = request.remote_addr
+        if is_rate_limited(client_ip + '_login', max_requests=5, window_seconds=60):
+            error = 'Terlalu banyak percobaan, coba lagi nanti'
         else:
-            error = 'Password salah'
+            password = request.form.get('password', '')
+            if hashlib.sha256(password.encode()).hexdigest() == ADMIN_PASSWORD_HASH:
+                session['logged_in'] = True
+                return redirect('/admin')
+            else:
+                error = 'Password salah'
     
     return render_template('login.html', error=error)
 
@@ -310,14 +348,38 @@ def check_seats():
 @app.route('/api/book', methods=['POST'])
 def book_seats():
     """Book seats and create transaction"""
+    # Rate limiting (10 requests per minute per IP)
+    client_ip = request.remote_addr
+    if is_rate_limited(client_ip, max_requests=10, window_seconds=60):
+        return jsonify({'error': 'Terlalu banyak permintaan, coba lagi nanti'}), 429
+    
     data = request.get_json()
-    name = data.get('name')
-    phone = data.get('phone')
+    if not data:
+        return jsonify({'error': 'Invalid request'}), 400
+    
+    name = sanitize_text(data.get('name', ''))
+    phone = sanitize_text(data.get('phone', ''))
     seats = data.get('seats', [])  # List of {region, number}
     is_admin = session.get('logged_in', False)
     
+    # Input validation
     if not name or not phone or not seats:
         return jsonify({'error': 'Name, phone and seats required'}), 400
+    
+    # Length limits to prevent abuse
+    if len(name) > 100:
+        return jsonify({'error': 'Nama terlalu panjang (max 100 karakter)'}), 400
+    if len(phone) > 20:
+        return jsonify({'error': 'Nomor telepon tidak valid'}), 400
+    if len(seats) > 10:
+        return jsonify({'error': 'Maksimal 10 kursi per pemesanan'}), 400
+    
+    # Validate seat data structure
+    for seat_data in seats:
+        if not isinstance(seat_data, dict) or 'region' not in seat_data or 'number' not in seat_data:
+            return jsonify({'error': 'Format kursi tidak valid'}), 400
+        if not isinstance(seat_data.get('region'), str) or len(seat_data['region']) > 10:
+            return jsonify({'error': 'Region tidak valid'}), 400
     
     try:
         # Check and book seats atomically with row-level locking
