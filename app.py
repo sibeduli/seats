@@ -189,21 +189,24 @@ def booked_list():
     
     if search:
         # Search by name, phone, or seat (e.g., "WLA-5" or "WLA" or "5")
-        # Get transaction IDs that match seat search
-        seat_match_ids = [s.transaction_id for s in Seat.query.filter(
-            Seat.transaction_id.isnot(None),
-            db.or_(
-                Seat.region.ilike(f'%{search}%'),
-                db.cast(Seat.seat_number, db.String).ilike(f'%{search}%'),
-                (Seat.region + '-' + db.cast(Seat.seat_number, db.String)).ilike(f'%{search}%')
+        # Use EXISTS subquery for efficient DB-side filtering
+        from sqlalchemy import exists
+        seat_subquery = exists().where(
+            db.and_(
+                Seat.transaction_id == Transaction.id,
+                db.or_(
+                    Seat.region.ilike(f'%{search}%'),
+                    db.cast(Seat.seat_number, db.String).ilike(f'%{search}%'),
+                    (Seat.region + '-' + db.cast(Seat.seat_number, db.String)).ilike(f'%{search}%')
+                )
             )
-        ).all()]
+        )
         
         query = query.filter(
             db.or_(
                 Transaction.name.ilike(f'%{search}%'),
                 Transaction.phone.ilike(f'%{search}%'),
-                Transaction.id.in_(seat_match_ids) if seat_match_ids else False
+                seat_subquery
             )
         )
     
