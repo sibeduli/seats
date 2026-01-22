@@ -349,8 +349,10 @@ def check_seats():
 def book_seats():
     """Book seats and create transaction"""
     # Rate limiting (10 requests per minute per IP)
+    # Bypass for benchmarking (only in debug mode)
+    bypass = request.headers.get('X-Benchmark-Bypass') == 'true' and app.debug
     client_ip = request.remote_addr
-    if is_rate_limited(client_ip, max_requests=10, window_seconds=60):
+    if not bypass and is_rate_limited(client_ip, max_requests=10, window_seconds=60):
         return jsonify({'error': 'Terlalu banyak permintaan, coba lagi nanti'}), 429
     
     data = request.get_json()
