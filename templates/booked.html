@@ -307,35 +307,47 @@ function revokeTransaction(id) {
     );
 }
 
-// SSE for real-time notifications
-let eventSource = null;
+// Polling for real-time notifications
 let newOrderCount = 0;
+let lastPollTime = Date.now() / 1000;  // Unix timestamp in seconds
+let pollInterval = null;
+let seenBookingIds = new Set();
 
-function connectSSE() {
-    eventSource = new EventSource('/api/events');
-    
-    eventSource.addEventListener('new_booking', function(e) {
-        const data = JSON.parse(e.data);
-        showNewOrderToast(data);
-        newOrderCount++;
-        updateNewOrderBadge();
-    });
-    
-    eventSource.addEventListener('ping', function(e) {
-        // Keep-alive ping
-    });
-    
-    eventSource.addEventListener('reconnect', function(e) {
-        // Server requested reconnect (5-min timeout)
-        eventSource.close();
-        setTimeout(connectSSE, 1000);
-    });
-    
-    eventSource.onerror = function() {
-        eventSource.close();
-        // Reconnect after 5 seconds
-        setTimeout(connectSSE, 5000);
-    };
+function startPolling() {
+    // Poll every 5 seconds
+    pollInterval = setInterval(pollForNewBookings, 5000);
+    // Initial poll
+    pollForNewBookings();
+}
+
+async function pollForNewBookings() {
+    try {
+        const res = await fetch(`/api/recent-bookings?since=${lastPollTime}`);
+        if (!res.ok) return;
+        
+        const data = await res.json();
+        for (const booking of data.bookings) {
+            // Skip if already seen
+            if (seenBookingIds.has(booking.id)) continue;
+            seenBookingIds.add(booking.id);
+            
+            showNewOrderToast(booking);
+            newOrderCount++;
+            updateNewOrderBadge();
+        }
+        
+        // Update last poll time
+        lastPollTime = Date.now() / 1000;
+    } catch (e) {
+        // Silently fail, will retry on next poll
+    }
+}
+
+function stopPolling() {
+    if (pollInterval) {
+        clearInterval(pollInterval);
+        pollInterval = null;
+    }
 }
 
 function showNewOrderToast(data) {
@@ -396,24 +408,18 @@ function refreshAndClear() {
     location.reload();
 }
 
-// Start SSE connection
-document.addEventListener('DOMContentLoaded', connectSSE);
+// Start polling on page load
+document.addEventListener('DOMContentLoaded', startPolling);
 
-// Close SSE connection when navigating away to prevent blocking
-window.addEventListener('beforeunload', function() {
-    if (eventSource) {
-        eventSource.close();
-        eventSource = null;
-    }
-});
+// Stop polling when navigating away
+window.addEventListener('beforeunload', stopPolling);
 
-// Also close on visibility change (tab switch)
+// Pause/resume polling on visibility change (tab switch)
 document.addEventListener('visibilitychange', function() {
-    if (document.hidden && eventSource) {
-        eventSource.close();
-        eventSource = null;
-    } else if (!document.hidden && !eventSource) {
-        connectSSE();
+    if (document.hidden) {
+        stopPolling();
+    } else {
+        startPolling();
     }
 });
 </script>

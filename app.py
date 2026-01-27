@@ -7,17 +7,13 @@ from dotenv import load_dotenv
 import os
 import secrets
 import hashlib
-import queue
 import json
 import logging
 
 # Load environment variables
 load_dotenv()
 
-# Event queue for SSE notifications (thread-safe)
 import threading
-event_queues = []
-event_queues_lock = threading.Lock()
 
 # Simple rate limiting (in-memory, resets on restart)
 from collections import defaultdict
@@ -425,15 +421,6 @@ def book_seats():
     seat_list = [f"{s['region']}-{s['number']}" for s in seats]
     logger.info(f"BOOKING: name={name}, phone={phone}, seats={seat_list}, status={status}, admin={is_admin}, hash={ticket_hash}")
     
-    # Broadcast SSE event for new pending booking (not for admin bookings)
-    if not is_admin:
-        broadcast_event('new_booking', {
-            'name': name,
-            'phone': phone,
-            'seats': seat_list,
-            'status': status
-        })
-    
     return jsonify({
         'success': True,
         'ticket_hash': ticket_hash,
@@ -511,54 +498,41 @@ def revoke_transaction(transaction_id):
         return jsonify({'error': 'Terjadi kesalahan'}), 500
 
 
-def broadcast_event(event_type, data):
-    """Broadcast event to all connected SSE clients (thread-safe)"""
-    message = f"event: {event_type}\ndata: {json.dumps(data)}\n\n"
-    with event_queues_lock:
-        dead_queues = []
-        for q in event_queues:
-            try:
-                q.put_nowait(message)
-            except:
-                dead_queues.append(q)
-        for q in dead_queues:
-            event_queues.remove(q)
-
-
-@app.route('/api/events')
+@app.route('/api/pending-count')
 @api_login_required
-def sse_events():
-    """SSE endpoint for real-time admin notifications"""
-    def event_stream():
-        q = queue.Queue()
-        with event_queues_lock:
-            event_queues.append(q)
-        try:
-            # Limit SSE connection to 5 minutes to prevent worker exhaustion
-            start_time = time.time()
-            max_duration = 300  # 5 minutes
-            while time.time() - start_time < max_duration:
-                try:
-                    # Non-blocking check with short timeout
-                    message = q.get(timeout=15)
-                    yield message
-                except queue.Empty:
-                    # Send keep-alive ping
-                    yield ": ping\n\n"
-            # Send reconnect hint before closing
-            yield "event: reconnect\ndata: {}\n\n"
-        except GeneratorExit:
-            pass
-        finally:
-            with event_queues_lock:
-                if q in event_queues:
-                    event_queues.remove(q)
+def get_pending_count():
+    """Get count of pending transactions for polling"""
+    count = Transaction.query.filter_by(status='pending').count()
+    return jsonify({'count': count})
+
+
+@app.route('/api/recent-bookings')
+@api_login_required
+def get_recent_bookings():
+    """Get recent pending bookings for polling notifications"""
+    since = request.args.get('since', type=float)  # Unix timestamp
+    if not since:
+        return jsonify({'bookings': []})
     
-    return Response(event_stream(), mimetype='text/event-stream', headers={
-        'Cache-Control': 'no-cache',
-        'Connection': 'keep-alive',
-        'X-Accel-Buffering': 'no'
-    })
+    since_dt = datetime.utcfromtimestamp(since)
+    recent = Transaction.query.filter(
+        Transaction.status == 'pending',
+        Transaction.timestamp > since_dt,
+        Transaction.booked_by_admin == False
+    ).order_by(Transaction.timestamp.desc()).limit(10).all()
+    
+    bookings = []
+    for t in recent:
+        seats = [f"{s.region}-{s.seat_number}" for s in t.seats]
+        bookings.append({
+            'id': t.id,
+            'name': t.name,
+            'phone': t.phone,
+            'seats': seats,
+            'timestamp': t.timestamp.timestamp()
+        })
+    
+    return jsonify({'bookings': bookings})
 
 
 if __name__ == '__main__':
