@@ -534,7 +534,10 @@ def sse_events():
         with event_queues_lock:
             event_queues.append(q)
         try:
-            while True:
+            # Limit SSE connection to 5 minutes to prevent worker exhaustion
+            start_time = time.time()
+            max_duration = 300  # 5 minutes
+            while time.time() - start_time < max_duration:
                 try:
                     # Non-blocking check with short timeout
                     message = q.get(timeout=15)
@@ -542,6 +545,8 @@ def sse_events():
                 except queue.Empty:
                     # Send keep-alive ping
                     yield ": ping\n\n"
+            # Send reconnect hint before closing
+            yield "event: reconnect\ndata: {}\n\n"
         except GeneratorExit:
             pass
         finally:

@@ -325,6 +325,12 @@ function connectSSE() {
         // Keep-alive ping
     });
     
+    eventSource.addEventListener('reconnect', function(e) {
+        // Server requested reconnect (5-min timeout)
+        eventSource.close();
+        setTimeout(connectSSE, 1000);
+    });
+    
     eventSource.onerror = function() {
         eventSource.close();
         // Reconnect after 5 seconds
