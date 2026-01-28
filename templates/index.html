@@ -10,15 +10,50 @@
         <p class="text-gray-500 text-xs sm:text-sm md:text-base">BAIAT DOKTER MUSLIM - BATCH FEBRUARI 2026</p>
     </div>
 
+    <!-- Venue Map -->
+    <div class="mb-4 sm:mb-6">
+        <div class="flex items-center justify-between mb-2">
+            <span class="text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded px-2 py-1">Peta
+                Venue</span>
+            <div class="flex items-center gap-2">
+                <a href="/static/assets/image.png" target="_blank"
+                    class="inline-flex items-center gap-1 px-2 py-1 bg-gray-100 hover:bg-gray-200 text-gray-600 text-xs rounded transition-colors">
+                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
+                    </svg>
+                    Buka di Tab Baru
+                </a>
+                <button onclick="zoomMap(-0.3)"
+                    class="p-1 bg-gray-100 hover:bg-gray-200 rounded text-gray-600">−</button>
+                <button onclick="zoomMap(0.3)"
+                    class="p-1 bg-gray-100 hover:bg-gray-200 rounded text-gray-600">+</button>
+                <button onclick="resetMap()"
+                    class="p-1.5 bg-gray-100 hover:bg-gray-200 rounded text-gray-600 text-xs">Reset</button>
+            </div>
+        </div>
+        <div id="venue-map-container"
+            class="relative rounded-lg overflow-hidden border border-gray-200 bg-gray-50 h-64 cursor-grab active:cursor-grabbing">
+            <img id="venue-map-img" src="/static/assets/image.png" alt="Venue Map" class="absolute select-none"
+                style="transform-origin: 0 0;" draggable="false">
+        </div>
+    </div>
+
     <!-- Region Selector -->
     <div class="flex justify-center mb-4 sm:mb-6">
         <div class="inline-flex bg-gray-100 rounded-lg p-1 flex-wrap justify-center gap-0.5">
-            <button onclick="showRegion('WLA')" id="btn-WLA" class="region-btn px-2.5 py-1.5 text-xs font-medium rounded-md transition-all bg-seat-available text-white">WLA</button>
-            <button onclick="showRegion('WLB')" id="btn-WLB" class="region-btn px-2.5 py-1.5 text-xs font-medium rounded-md transition-all text-gray-600 hover:text-gray-800">WLB</button>
-            <button onclick="showRegion('CL')" id="btn-CL" class="region-btn px-2.5 py-1.5 text-xs font-medium rounded-md transition-all text-gray-600 hover:text-gray-800">CL</button>
-            <button onclick="showRegion('CR')" id="btn-CR" class="region-btn px-2.5 py-1.5 text-xs font-medium rounded-md transition-all text-gray-600 hover:text-gray-800">CR</button>
-            <button onclick="showRegion('WRB')" id="btn-WRB" class="region-btn px-2.5 py-1.5 text-xs font-medium rounded-md transition-all text-gray-600 hover:text-gray-800">WRB</button>
-            <button onclick="showRegion('WRA')" id="btn-WRA" class="region-btn px-2.5 py-1.5 text-xs font-medium rounded-md transition-all text-gray-600 hover:text-gray-800">WRA</button>
+            <button onclick="showRegion('WLA')" id="btn-WLA"
+                class="region-btn px-2.5 py-1.5 text-xs font-medium rounded-md transition-all bg-seat-available text-white">WLA</button>
+            <button onclick="showRegion('WLB')" id="btn-WLB"
+                class="region-btn px-2.5 py-1.5 text-xs font-medium rounded-md transition-all text-gray-600 hover:text-gray-800">WLB</button>
+            <button onclick="showRegion('CL')" id="btn-CL"
+                class="region-btn px-2.5 py-1.5 text-xs font-medium rounded-md transition-all text-gray-600 hover:text-gray-800">CL</button>
+            <button onclick="showRegion('CR')" id="btn-CR"
+                class="region-btn px-2.5 py-1.5 text-xs font-medium rounded-md transition-all text-gray-600 hover:text-gray-800">CR</button>
+            <button onclick="showRegion('WRB')" id="btn-WRB"
+                class="region-btn px-2.5 py-1.5 text-xs font-medium rounded-md transition-all text-gray-600 hover:text-gray-800">WRB</button>
+            <button onclick="showRegion('WRA')" id="btn-WRA"
+                class="region-btn px-2.5 py-1.5 text-xs font-medium rounded-md transition-all text-gray-600 hover:text-gray-800">WRA</button>
         </div>
     </div>
 
@@ -26,16 +61,9 @@
     <div class="bg-gray-200 text-gray-600 text-center py-2 rounded mb-4 uppercase tracking-widest text-xs font-medium">
         Stage
     </div>
-
     <!-- Region Title -->
     <div class="text-center mb-4 flex flex-col sm:flex-row items-center justify-center gap-2">
         <span id="region-title" class="text-sm sm:text-lg font-medium text-gray-700">Region: WLA (Wing Left A)</span>
-        <a href="/static/assets/image.png" target="_blank" class="inline-flex items-center gap-1 px-2 py-1 bg-gray-100 hover:bg-gray-200 text-gray-600 text-xs rounded transition-colors">
-            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"/>
-            </svg>
-            Full Map
-        </a>
     </div>
 
     <!-- Seat Grids -->
@@ -49,16 +77,6 @@
             <!-- WLB: Stepped layout, seats 1-70 -->
             <div id="region-WLB" class="seat-region hidden">
                 <div class="flex flex-col gap-1 items-start" id="WLB-container"></div>
-            </div>
-
-            <!-- CL: Stepped layout -->
-            <div id="region-CL" class="seat-region hidden">
-                <div class="flex flex-col gap-1 items-start" id="CL-container"></div>
-            </div>
-
-            <!-- C: Stepped layout -->
-            <div id="region-C" class="seat-region hidden">
-                <div class="flex flex-col gap-1 items-start" id="C-container"></div>
             </div>
 
             <!-- CR: Stepped layout -->
@@ -79,7 +97,8 @@
     </div>
 
     <!-- Legend -->
-    <div class="flex flex-wrap justify-center items-center gap-3 sm:gap-4 md:gap-8 text-xs sm:text-sm text-gray-600 mb-4 sm:mb-6">
+    <div
+        class="flex flex-wrap justify-center items-center gap-3 sm:gap-4 md:gap-8 text-xs sm:text-sm text-gray-600 mb-4 sm:mb-6">
         <div class="flex items-center gap-1.5">
             <div class="w-3 h-3 sm:w-4 sm:h-4 bg-seat-available rounded"></div>
             <span>Tersedia</span>
@@ -97,14 +116,16 @@
     <!-- Booking Form -->
     <div id="booking-section" class="border-t pt-4 sm:pt-6 hidden">
         <div class="text-center mb-3 sm:mb-4">
-            <p class="text-sm sm:text-base text-gray-700">Kursi dipilih: <span id="selected-seats" class="font-medium">-</span></p>
+            <p class="text-sm sm:text-base text-gray-700">Kursi dipilih: <span id="selected-seats"
+                    class="font-medium">-</span></p>
         </div>
         <div class="max-w-md mx-auto">
-            <input type="text" id="guest-name" placeholder="Masukkan nama peserta..." 
-                   class="w-full px-3 sm:px-4 py-2.5 sm:py-3 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 mb-2 sm:mb-3">
-            <input type="tel" id="guest-phone" placeholder="Masukkan nomor HP (contoh: 08123456789)" 
-                   class="w-full px-3 sm:px-4 py-2.5 sm:py-3 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 mb-3 sm:mb-4">
-            <button onclick="bookSeats()" class="w-full bg-seat-available hover:bg-blue-600 text-white font-medium py-2.5 sm:py-3 text-sm sm:text-base rounded-lg transition-colors">
+            <input type="text" id="guest-name" placeholder="Masukkan nama peserta..."
+                class="w-full px-3 sm:px-4 py-2.5 sm:py-3 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 mb-2 sm:mb-3">
+            <input type="tel" id="guest-phone" placeholder="Masukkan nomor HP (contoh: 08123456789)"
+                class="w-full px-3 sm:px-4 py-2.5 sm:py-3 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 mb-3 sm:mb-4">
+            <button onclick="bookSeats()"
+                class="w-full bg-seat-available hover:bg-blue-600 text-white font-medium py-2.5 sm:py-3 text-sm sm:text-base rounded-lg transition-colors">
                 Pesan Kursi
             </button>
         </div>
@@ -115,7 +136,7 @@
 <div id="confirm-modal" class="fixed inset-0 bg-black/50 flex items-center justify-center hidden z-50">
     <div class="bg-white rounded-lg p-8 max-w-md w-full mx-4">
         <h2 class="font-serif text-2xl text-gray-800 mb-4 text-center">Konfirmasi Pemesanan</h2>
-        
+
         <div class="bg-gray-50 rounded-lg p-4 mb-4">
             <div class="mb-3">
                 <p class="text-gray-500 text-sm">Nama Peserta</p>
@@ -129,7 +150,7 @@
                 <p class="text-gray-500 text-sm">Kursi Dipilih</p>
                 <p id="confirm-seats" class="font-medium text-gray-800">-</p>
             </div>
-            
+
             <!-- Mini-map Preview -->
             <div class="mt-4 pt-4 border-t border-gray-200">
                 <p class="text-gray-500 text-sm mb-2">Preview Lokasi</p>
@@ -140,28 +161,32 @@
                 </div>
             </div>
         </div>
-        
+
         <div id="confirm-status" class="mb-4 hidden">
             <div class="flex items-center gap-2 text-yellow-600">
                 <svg class="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24">
                     <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    <path class="opacity-75" fill="currentColor"
+                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
+                    </path>
                 </svg>
                 <span>Memeriksa ketersediaan kursi...</span>
             </div>
         </div>
-        
+
         <div id="confirm-error" class="mb-4 hidden">
             <div class="bg-red-50 border border-red-200 rounded-lg p-3 text-red-700 text-sm">
                 <span id="confirm-error-msg"></span>
             </div>
         </div>
-        
+
         <div class="flex gap-3">
-            <button onclick="cancelConfirmation()" class="flex-1 border border-gray-300 text-gray-700 font-medium py-3 rounded-lg hover:bg-gray-50 transition-colors">
+            <button onclick="cancelConfirmation()"
+                class="flex-1 border border-gray-300 text-gray-700 font-medium py-3 rounded-lg hover:bg-gray-50 transition-colors">
                 Batal
             </button>
-            <button id="confirm-btn" onclick="confirmBooking()" class="flex-1 bg-seat-available hover:bg-blue-600 text-white font-medium py-3 rounded-lg transition-colors">
+            <button id="confirm-btn" onclick="confirmBooking()"
+                class="flex-1 bg-seat-available hover:bg-blue-600 text-white font-medium py-3 rounded-lg transition-colors">
                 Konfirmasi
             </button>
         </div>
@@ -173,25 +198,97 @@
     <div class="bg-white rounded-lg p-8 max-w-md w-full mx-4 text-center">
         <div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
             <svg class="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
             </svg>
         </div>
         <h2 class="font-serif text-2xl text-gray-800 mb-2">Pemesanan Berhasil!</h2>
         <p class="text-gray-600 mb-4">Scan QR code untuk melihat tiket</p>
-        
+
         <!-- QR Code -->
         <div id="ticket-qr" class="flex justify-center mb-4">
             <div class="bg-white p-4 rounded-lg shadow-inner"></div>
         </div>
-        
-        <a id="ticket-link" href="#" target="_blank" class="inline-block bg-seat-available hover:bg-blue-600 text-white font-medium px-6 py-3 rounded-lg transition-colors mb-2">
+
+        <a id="ticket-link" href="#" target="_blank"
+            class="inline-block bg-seat-available hover:bg-blue-600 text-white font-medium px-6 py-3 rounded-lg transition-colors mb-2">
             Buka Halaman Tiket
         </a>
-        <button onclick="closeSuccessModal()" class="block w-full text-gray-500 hover:text-gray-700 mt-2">Selesai</button>
+        <button onclick="closeSuccessModal()"
+            class="block w-full text-gray-500 hover:text-gray-700 mt-2">Selesai</button>
     </div>
 </div>
 
 <script>
+    // ============ MAP VIEWER ============
+    // ADJUST THESE VALUES TO CHANGE INITIAL VIEW
+    const INITIAL_MAP_SCALE = 1;  // 0.2 = 20%, 0.5 = 50%, 1 = 100%
+    const INITIAL_MAP_X = 3;
+    const INITIAL_MAP_Y = -266;
+
+    let mapScale = INITIAL_MAP_SCALE;
+    let mapX = INITIAL_MAP_X;
+    let mapY = INITIAL_MAP_Y;
+    let isDragging = false;
+    let startX, startY;
+
+    function initMap() {
+        const container = document.getElementById('venue-map-container');
+
+        updateMapTransform();
+
+        container.onmousedown = (e) => { isDragging = true; startX = e.clientX - mapX; startY = e.clientY - mapY; };
+        container.onmousemove = (e) => { if (isDragging) { mapX = e.clientX - startX; mapY = e.clientY - startY; updateMapTransform(); } };
+        container.onmouseup = () => isDragging = false;
+        container.onmouseleave = () => isDragging = false;
+
+        container.ontouchstart = (e) => { isDragging = true; startX = e.touches[0].clientX - mapX; startY = e.touches[0].clientY - mapY; };
+        container.ontouchmove = (e) => { if (isDragging) { e.preventDefault(); mapX = e.touches[0].clientX - startX; mapY = e.touches[0].clientY - startY; updateMapTransform(); } };
+        container.ontouchend = () => isDragging = false;
+
+        // Scroll wheel zoom toward cursor position
+        container.onwheel = (e) => {
+            e.preventDefault();
+            const rect = container.getBoundingClientRect();
+            const mouseX = e.clientX - rect.left;
+            const mouseY = e.clientY - rect.top;
+            zoomAtPoint(e.deltaY > 0 ? -0.1 : 0.1, mouseX, mouseY);
+        };
+    }
+
+    function zoomAtPoint(delta, pointX, pointY) {
+        const oldScale = mapScale;
+        mapScale = Math.max(0.1, Math.min(3, mapScale + delta));
+        
+        // Adjust position so zoom centers on the point
+        const scaleRatio = mapScale / oldScale;
+        mapX = pointX - (pointX - mapX) * scaleRatio;
+        mapY = pointY - (pointY - mapY) * scaleRatio;
+        updateMapTransform();
+    }
+
+    function zoomMap(delta) {
+        // Button zoom - zoom toward center of container
+        const container = document.getElementById('venue-map-container');
+        const centerX = container.offsetWidth / 2;
+        const centerY = container.offsetHeight / 2;
+        zoomAtPoint(delta, centerX, centerY);
+    }
+
+    function resetMap() {
+        mapScale = INITIAL_MAP_SCALE;
+        mapX = INITIAL_MAP_X;
+        mapY = INITIAL_MAP_Y;
+        updateMapTransform();
+    }
+
+    function updateMapTransform() {
+        document.getElementById('venue-map-img').style.transform = `translate(${mapX}px, ${mapY}px) scale(${mapScale})`;
+        console.log(`X: ${Math.round(mapX)}, Y: ${Math.round(mapY)}, Scale: ${mapScale.toFixed(2)}`);
+    }
+
+    document.addEventListener('DOMContentLoaded', initMap);
+    // ============ END MAP VIEWER ============
+
     const regionConfig = {
         'WLA': { name: 'Wing Left A', type: 'stepped', seatsPerRow: [10, 10, 10, 10, 10, 10, 10, 10], leanDirection: 'left' },
         'WLB': { name: 'Wing Left B', type: 'stepped', seatsPerRow: [3, 5, 7, 8, 10, 12, 13, 15, 15], leanDirection: 'left' },
@@ -237,7 +334,7 @@
         const selected = document.querySelectorAll('[data-seat].bg-seat-selected');
         const section = document.getElementById('booking-section');
         const display = document.getElementById('selected-seats');
-        
+
         if (selected.length > 0) {
             section.classList.remove('hidden');
             const seatNames = Array.from(selected).map(s => s.dataset.seat);
@@ -262,7 +359,7 @@
         const name = document.getElementById('guest-name').value.trim();
         const phone = document.getElementById('guest-phone').value.trim();
         const seats = getSelectedSeats();
-        
+
         if (!name) {
             alert('Mohon masukkan nama peserta');
             return;
@@ -275,7 +372,7 @@
             alert('Mohon pilih kursi terlebih dahulu');
             return;
         }
-        
+
         // Store pending booking and show confirmation
         pendingBooking = { name, phone, seats };
         document.getElementById('confirm-name').textContent = name;
@@ -284,34 +381,34 @@
         document.getElementById('confirm-error').classList.add('hidden');
         document.getElementById('confirm-status').classList.add('hidden');
         document.getElementById('confirm-btn').disabled = false;
-        
+
         // Render mini-map preview
         renderSeatPreview(seats);
-        
+
         document.getElementById('confirm-modal').classList.remove('hidden');
     }
-    
+
     function renderSeatPreview(seats) {
         const previewMap = document.getElementById('seat-preview-map');
-        const regionOrder = ['WLA', 'WLB', 'CL', 'C', 'CR', 'WRB', 'WRA'];
-        
+        const regionOrder = ['WLA', 'WLB', 'CL', 'CR', 'WRB', 'WRA'];
+
         // Group seats by region
         const seatsByRegion = {};
         seats.forEach(s => {
             if (!seatsByRegion[s.region]) seatsByRegion[s.region] = [];
             seatsByRegion[s.region].push(s.number);
         });
-        
+
         // Build mini-map HTML
         let html = '<div class="flex flex-col items-center gap-2">';
         html += '<div class="text-gray-500 text-xs mb-1">🎭 PANGGUNG</div>';
         html += '<div class="flex gap-2 flex-wrap justify-center">';
-        
+
         regionOrder.forEach(region => {
             const isSelected = seatsByRegion[region] && seatsByRegion[region].length > 0;
             const bgColor = isSelected ? 'bg-green-500 text-white' : 'bg-gray-300 text-gray-500';
-            const seatNums = isSelected ? seatsByRegion[region].sort((a,b) => a-b).join(', ') : '';
-            
+            const seatNums = isSelected ? seatsByRegion[region].sort((a, b) => a - b).join(', ') : '';
+
             html += `<div class="flex flex-col items-center">`;
             html += `<div class="w-10 h-8 ${bgColor} rounded text-xs flex items-center justify-center font-medium">${region}</div>`;
             if (isSelected) {
@@ -319,7 +416,7 @@
             }
             html += `</div>`;
         });
-        
+
         html += '</div></div>';
         previewMap.innerHTML = html;
     }
@@ -335,12 +432,12 @@
         const statusEl = document.getElementById('confirm-status');
         const errorEl = document.getElementById('confirm-error');
         const errorMsg = document.getElementById('confirm-error-msg');
-        
+
         // Show loading
         confirmBtn.disabled = true;
         statusEl.classList.remove('hidden');
         errorEl.classList.add('hidden');
-        
+
         try {
             // Check availability first (race condition check)
             const checkRes = await fetch('/api/check-seats', {
@@ -349,7 +446,7 @@
                 body: JSON.stringify({ seats })
             });
             const checkData = await checkRes.json();
-            
+
             if (!checkData.available) {
                 statusEl.classList.add('hidden');
                 errorEl.classList.remove('hidden');
@@ -357,7 +454,7 @@
                 confirmBtn.disabled = false;
                 return;
             }
-            
+
             // Proceed with booking
             const res = await fetch('/api/book', {
                 method: 'POST',
@@ -365,16 +462,16 @@
                 body: JSON.stringify({ name, phone, seats })
             });
             const data = await res.json();
-            
+
             statusEl.classList.add('hidden');
-            
+
             if (data.success) {
                 document.getElementById('confirm-modal').classList.add('hidden');
-                
+
                 // Show success with QR
                 const ticketUrl = window.location.origin + data.ticket_url;
                 document.getElementById('ticket-link').href = data.ticket_url;
-                
+
                 // Generate QR code
                 const qrContainer = document.getElementById('ticket-qr');
                 qrContainer.innerHTML = '';
@@ -385,7 +482,7 @@
                     colorDark: '#1a3a3a',
                     colorLight: '#ffffff'
                 });
-                
+
                 document.getElementById('success-modal').classList.remove('hidden');
             } else {
                 errorEl.classList.remove('hidden');
@@ -428,11 +525,11 @@
     function initSteppedRegion(region) {
         const container = document.getElementById(`${region}-container`);
         if (!container) return;
-        
+
         const config = regionConfig[region];
         const leanDirection = config.leanDirection || 'left';
         let seatNum = 1;
-        
+
         // Set container alignment based on lean direction
         container.className = 'flex flex-col gap-1';
         if (leanDirection === 'left') {
@@ -442,12 +539,12 @@
         } else {
             container.classList.add('items-center');
         }
-        
+
         config.seatsPerRow.forEach((seatsInRow, rowIndex) => {
             const rowDiv = document.createElement('div');
             // Always use flex-row-reverse so numbering is right to left
             rowDiv.className = 'flex gap-1 flex-row-reverse';
-            
+
             for (let i = 0; i < seatsInRow; i++) {
                 rowDiv.appendChild(createSeat(region, seatNum));
                 seatNum++;
@@ -479,7 +576,7 @@
             btn.classList.remove('bg-seat-available', 'text-white');
             btn.classList.add('text-gray-600');
         });
-        
+
         document.getElementById(`region-${region}`).classList.remove('hidden');
         document.getElementById(`btn-${region}`).classList.add('bg-seat-available', 'text-white');
         document.getElementById(`btn-${region}`).classList.remove('text-gray-600');

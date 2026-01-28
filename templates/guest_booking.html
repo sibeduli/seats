@@ -59,13 +59,41 @@
                 </div>
             </div>
 
+            <!-- Venue Map -->
+            <div class="mb-4 sm:mb-6">
+                <div class="flex items-center justify-between mb-2">
+                    <span class="text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded px-2 py-1">Peta
+                        Venue</span>
+                    <div class="flex items-center gap-2">
+                        <a href="/static/assets/image.png" target="_blank"
+                            class="inline-flex items-center gap-1 px-2 py-1 bg-gray-100 hover:bg-gray-200 text-gray-600 text-xs rounded transition-colors">
+                            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
+                            </svg>
+                            Buka di Tab Baru
+                        </a>
+                        <button onclick="zoomMap(-0.3)"
+                            class="p-1 bg-gray-100 hover:bg-gray-200 rounded text-gray-600">−</button>
+                        <button onclick="zoomMap(0.3)"
+                            class="p-1 bg-gray-100 hover:bg-gray-200 rounded text-gray-600">+</button>
+                        <button onclick="resetMap()"
+                            class="p-1.5 bg-gray-100 hover:bg-gray-200 rounded text-gray-600 text-xs">Reset</button>
+                    </div>
+                </div>
+                <div id="venue-map-container"
+                    class="relative rounded-lg overflow-hidden border border-gray-200 bg-gray-50 h-64 cursor-grab active:cursor-grabbing">
+                    <img id="venue-map-img" src="/static/assets/image.png" alt="Venue Map" class="absolute select-none"
+                        style="transform-origin: 0 0;" draggable="false">
+                </div>
+            </div>
+
             <!-- Region Selector -->
             <div class="flex justify-center mb-6">
                 <div class="inline-flex bg-gray-100 rounded-lg p-1 flex-wrap justify-center gap-0.5">
                     <button onclick="showRegion('WLA')" id="btn-WLA" class="region-btn px-2.5 py-1.5 text-xs font-medium rounded-md transition-all bg-seat-available text-white">WLA</button>
                     <button onclick="showRegion('WLB')" id="btn-WLB" class="region-btn px-2.5 py-1.5 text-xs font-medium rounded-md transition-all text-gray-600 hover:text-gray-800">WLB</button>
                     <button onclick="showRegion('CL')" id="btn-CL" class="region-btn px-2.5 py-1.5 text-xs font-medium rounded-md transition-all text-gray-600 hover:text-gray-800">CL</button>
-                    <button onclick="showRegion('C')" id="btn-C" class="region-btn px-2.5 py-1.5 text-xs font-medium rounded-md transition-all text-gray-600 hover:text-gray-800">C</button>
                     <button onclick="showRegion('CR')" id="btn-CR" class="region-btn px-2.5 py-1.5 text-xs font-medium rounded-md transition-all text-gray-600 hover:text-gray-800">CR</button>
                     <button onclick="showRegion('WRB')" id="btn-WRB" class="region-btn px-2.5 py-1.5 text-xs font-medium rounded-md transition-all text-gray-600 hover:text-gray-800">WRB</button>
                     <button onclick="showRegion('WRA')" id="btn-WRA" class="region-btn px-2.5 py-1.5 text-xs font-medium rounded-md transition-all text-gray-600 hover:text-gray-800">WRA</button>
@@ -78,14 +106,8 @@
             </div>
 
             <!-- Region Title -->
-            <div class="text-center mb-4 flex flex-col sm:flex-row items-center justify-center gap-2">
+            <div class="text-center mb-4">
                 <span id="region-title" class="text-sm sm:text-lg font-medium text-gray-700">Region: WLA (Wing Left A)</span>
-                <a href="/static/assets/image.png" target="_blank" class="inline-flex items-center gap-1 px-2 py-1 bg-gray-100 hover:bg-gray-200 text-gray-600 text-xs rounded transition-colors">
-                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"/>
-                    </svg>
-                    Full Map
-                </a>
             </div>
 
             <!-- Seat Grids -->
@@ -211,13 +233,82 @@
     </div>
 
 <script>
+    // ============ MAP VIEWER ============
+    // ADJUST THESE VALUES TO CHANGE INITIAL VIEW
+    const INITIAL_MAP_SCALE = 1;  // 0.2 = 20%, 0.5 = 50%, 1 = 100%
+    const INITIAL_MAP_X = 3;
+    const INITIAL_MAP_Y = -266;
+
+    let mapScale = INITIAL_MAP_SCALE;
+    let mapX = INITIAL_MAP_X;
+    let mapY = INITIAL_MAP_Y;
+    let isDragging = false;
+    let startX, startY;
+
+    function initMap() {
+        const container = document.getElementById('venue-map-container');
+
+        updateMapTransform();
+
+        container.onmousedown = (e) => { isDragging = true; startX = e.clientX - mapX; startY = e.clientY - mapY; };
+        container.onmousemove = (e) => { if (isDragging) { mapX = e.clientX - startX; mapY = e.clientY - startY; updateMapTransform(); } };
+        container.onmouseup = () => isDragging = false;
+        container.onmouseleave = () => isDragging = false;
+
+        container.ontouchstart = (e) => { isDragging = true; startX = e.touches[0].clientX - mapX; startY = e.touches[0].clientY - mapY; };
+        container.ontouchmove = (e) => { if (isDragging) { e.preventDefault(); mapX = e.touches[0].clientX - startX; mapY = e.touches[0].clientY - startY; updateMapTransform(); } };
+        container.ontouchend = () => isDragging = false;
+
+        // Scroll wheel zoom toward cursor position
+        container.onwheel = (e) => {
+            e.preventDefault();
+            const rect = container.getBoundingClientRect();
+            const mouseX = e.clientX - rect.left;
+            const mouseY = e.clientY - rect.top;
+            zoomAtPoint(e.deltaY > 0 ? -0.1 : 0.1, mouseX, mouseY);
+        };
+    }
+
+    function zoomAtPoint(delta, pointX, pointY) {
+        const oldScale = mapScale;
+        mapScale = Math.max(0.1, Math.min(3, mapScale + delta));
+        
+        // Adjust position so zoom centers on the point
+        const scaleRatio = mapScale / oldScale;
+        mapX = pointX - (pointX - mapX) * scaleRatio;
+        mapY = pointY - (pointY - mapY) * scaleRatio;
+        updateMapTransform();
+    }
+
+    function zoomMap(delta) {
+        // Button zoom - zoom toward center of container
+        const container = document.getElementById('venue-map-container');
+        const centerX = container.offsetWidth / 2;
+        const centerY = container.offsetHeight / 2;
+        zoomAtPoint(delta, centerX, centerY);
+    }
+
+    function resetMap() {
+        mapScale = INITIAL_MAP_SCALE;
+        mapX = INITIAL_MAP_X;
+        mapY = INITIAL_MAP_Y;
+        updateMapTransform();
+    }
+
+    function updateMapTransform() {
+        document.getElementById('venue-map-img').style.transform = `translate(${mapX}px, ${mapY}px) scale(${mapScale})`;
+        console.log(`X: ${Math.round(mapX)}, Y: ${Math.round(mapY)}, Scale: ${mapScale.toFixed(2)}`);
+    }
+
+    document.addEventListener('DOMContentLoaded', initMap);
+    // ============ END MAP VIEWER ============
+
     const regionConfig = {
         'WLA': { name: 'Wing Left A', type: 'stepped', seatsPerRow: [10, 10, 10, 10, 10, 10, 10, 10], leanDirection: 'left' },
-        'WLB': { name: 'Wing Left B', type: 'stepped', seatsPerRow: [2, 4, 5, 7, 8, 9, 10, 10, 10], leanDirection: 'left' },
-        'CL': { name: 'Center Left', type: 'stepped', seatsPerRow: [11, 11, 11, 11, 11, 11, 11, 10, 9, 8, 6, 4, 2], leanDirection: 'right' },
-        'C': { name: 'Center', type: 'stepped', seatsPerRow: [10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 8], leanDirection: 'center' },
-        'CR': { name: 'Center Right', type: 'stepped', seatsPerRow: [11, 11, 11, 11, 11, 11, 11, 10, 9, 8, 6, 4, 2], leanDirection: 'left' },
-        'WRB': { name: 'Wing Right B', type: 'stepped', seatsPerRow: [2, 4, 5, 7, 8, 9, 10, 10, 10], leanDirection: 'right' },
+        'WLB': { name: 'Wing Left B', type: 'stepped', seatsPerRow: [3, 5, 7, 8, 10, 12, 13, 15, 15], leanDirection: 'left' },
+        'CL': { name: 'Center Left', type: 'stepped', seatsPerRow: [15, 15, 15, 15, 15, 16, 16, 15, 13, 11, 11, 9], leanDirection: 'right' },
+        'CR': { name: 'Center Right', type: 'stepped', seatsPerRow: [15, 15, 15, 15, 15, 16, 16, 15, 13, 11, 11, 9], leanDirection: 'left' },
+        'WRB': { name: 'Wing Right B', type: 'stepped', seatsPerRow: [3, 5, 7, 8, 10, 12, 13, 15, 15], leanDirection: 'right' },
         'WRA': { name: 'Wing Right A', type: 'stepped', seatsPerRow: [10, 10, 10, 10, 10, 10, 10, 10], leanDirection: 'right' }
     };
 
@@ -352,7 +443,7 @@
     
     function renderSeatPreview(seats) {
         const previewMap = document.getElementById('seat-preview-map');
-        const regionOrder = ['WLA', 'WLB', 'CL', 'C', 'CR', 'WRB', 'WRA'];
+        const regionOrder = ['WLA', 'WLB', 'CL', 'CR', 'WRB', 'WRA'];
         
         // Group seats by region
         const seatsByRegion = {};
