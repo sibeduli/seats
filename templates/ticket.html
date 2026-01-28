@@ -8,7 +8,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=Inter:wght@300;400;500;600&family=Libre+Baskerville:wght@400;700&family=Forum&display=swap" rel="stylesheet">
     <script>
         tailwind.config = {
             theme: {
@@ -150,76 +150,119 @@
     </script>
     {% else %}
     <!-- Active Ticket -->
-    <div class="w-full max-w-2xl">
-        <div class="flex rounded-lg overflow-hidden shadow-2xl">
+    <div class="w-full max-w-3xl overflow-x-auto">
+        <div id="ticket-page-1" class="flex rounded-lg overflow-hidden shadow-2xl min-w-[700px]">
             <!-- Main Ticket Section -->
-            <div class="flex-1 bg-[#f5f5f0] p-6">
-                <!-- Header -->
-                <div class="flex items-center gap-2 mb-4">
-                    <span class="text-green-800 text-sm font-medium">UNIVERSITAS</span>
-                    <span class="text-green-800 font-serif font-bold">YARSI</span>
-                </div>
+            <div class="flex-1 bg-[#f6f7ec] p-6 relative ticket-main ticket-texture">
                 
-                <!-- Title -->
-                <h1 class="font-serif text-3xl text-green-900 mb-2">Baiat Dokter Muslim</h1>
-                <p class="text-green-800 text-sm mb-1">Batch Februari 2026</p>
-                <p class="text-green-800 text-sm mb-6">Fakultas Kedokteran Universitas YARSI</p>
-                
-                <!-- Details -->
-                <div class="mb-6">
-                    <div class="mb-4">
-                        <p class="text-gray-500 text-xs uppercase tracking-wide">Nama Peserta</p>
-                        <p class="font-serif text-lg text-green-900 font-medium">{{ transaction.name }}</p>
+                <!-- Content -->
+                <div class="relative z-10">
+                    <!-- Header with logo -->
+                    <div class="">
+                        <img src="/static/assets/yarsi-transparent.png" alt="Universitas YARSI" class="h-24">
                     </div>
                     
-                    <!-- Group seats by region -->
-                    {% set seats_by_region = {} %}
-                    {% for seat in transaction.seats %}
-                        {% if seat.region not in seats_by_region %}
-                            {% set _ = seats_by_region.update({seat.region: []}) %}
-                        {% endif %}
-                        {% set _ = seats_by_region[seat.region].append(seat.seat_number) %}
-                    {% endfor %}
+                    <!-- Title -->
+                    <h1 class="text-3xl text-[#6d0000] font-bold mb-2 -mt-6" style="font-family: 'Libre Baskerville', serif; letter-spacing: 0.18em; line-height: 1.4;">BAIAT DOKTER MUSLIM</h1>
+                    <p class="text-[#6d0000] text-sm uppercase mb-0" style="font-family: 'Forum', serif; letter-spacing: 0.30em; line-height: 1.4;">BATCH NOVEMBER 2025</p>
+                    <p class="text-[#6d0000] text-sm uppercase mb-6" style="font-family: 'Forum', serif; letter-spacing: 0.30em; line-height: 1.4;">FAKULTAS KEDOKTERAN YARSI</p>
                     
-                    {% for region, seat_numbers in seats_by_region.items() %}
-                    <div class="flex gap-8 {% if not loop.last %}mb-2{% endif %}">
-                        <div class="w-24">
-                            <p class="text-gray-500 text-xs uppercase tracking-wide">Area</p>
-                            <p class="font-serif text-lg text-green-900 font-medium">{{ region }}</p>
+                    <!-- Details Grid -->
+                    <div class="mb-6">
+                        <!-- Group seats by region -->
+                        {% set seats_by_region = {} %}
+                        {% for seat in transaction.seats %}
+                            {% if seat.region not in seats_by_region %}
+                                {% set _ = seats_by_region.update({seat.region: []}) %}
+                            {% endif %}
+                            {% set _ = seats_by_region[seat.region].append(seat.seat_number) %}
+                        {% endfor %}
+                        
+                        <!-- Header row -->
+                        <div class="flex gap-12 mb-1">
+                            <div class="w-48">
+                                <p class="text-[#6d0000]/70 text-xs uppercase tracking-wider">NAMA</p>
+                            </div>
+                            <div class="w-20">
+                                <p class="text-[#6d0000]/70 text-xs uppercase tracking-wider">AREA</p>
+                            </div>
+                            <div class="w-20">
+                                <p class="text-[#6d0000]/70 text-xs uppercase tracking-wider">SEAT</p>
+                            </div>
                         </div>
-                        <div>
-                            <p class="text-gray-500 text-xs uppercase tracking-wide">Seat</p>
-                            <p class="font-serif text-lg text-green-900 font-medium">
-                                {{ seat_numbers | sort | join(', ') }}
-                            </p>
+                        
+                        <!-- Data row - Name spans all regions -->
+                        <div class="flex gap-12 items-start">
+                            <div class="w-48">
+                                <p class="font-serif text-xl text-[#6d0000] font-bold uppercase">{{ transaction.name }}</p>
+                            </div>
+                            <div>
+                                {% for region, seat_numbers in seats_by_region.items() %}
+                                <div class="flex gap-12 {% if not loop.first %}mt-1{% endif %}">
+                                    <div class="w-20">
+                                        <p class="font-serif text-xl text-[#6d0000] font-bold">{{ region }}</p>
+                                    </div>
+                                    <div class="w-20">
+                                        <p class="font-serif text-xl text-[#6d0000] font-bold">{{ seat_numbers | sort | join(', ') }}</p>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
                         </div>
                     </div>
-                    {% endfor %}
-                </div>
-                
-                <!-- Footer -->
-                <div class="border-t border-dashed border-gray-300 pt-4">
-                    <p class="text-gray-500 text-sm text-center">Harap tunjukkan tiket ini ke panitia</p>
+                    
+                    <!-- Divider -->
+                    <div class="border-t border-dashed border-[#6d0000]/30 my-4"></div>
+                    
+                    <!-- Footer -->
+                    <p class="text-[#6d0000]/80 text-sm text-center">Tunjukkan tiket ini saat proses registrasi dan pengambilan snack</p>
                 </div>
             </div>
             
             <!-- Side Panel -->
-            <div class="w-32 bg-[#1a3a3a] p-4 flex flex-col items-center justify-center text-white">
-                <p class="font-serif text-4xl font-bold writing-vertical">JAM 08.00</p>
-                <div class="mt-4 text-xs text-center writing-vertical">
-                    <p>Saturday, February 14, 2026</p>
-                    <p class="mt-1">Aula Universitas Yarsi</p>
+            <div class="w-28 bg-[#6d0000] flex items-center justify-center text-white">
+                <img src="/static/assets/side-panel.svg" alt="" class="w-full object-cover object-center">
+            </div>
+        </div>
+        
+        <!-- Second Page: Syarat & Ketentuan -->
+        <div id="ticket-page-2" class="flex rounded-lg overflow-hidden shadow-2xl min-w-[700px] mt-6">
+            <div class="flex-1 bg-[#f6f7ec] p-6 relative ticket-main ticket-texture">
+                <div class="relative z-10">
+                    <h2 class="text-2xl text-[#6d0000] font-bold mb-4" style="font-family: 'Libre Baskerville', serif; letter-spacing: 0.1em;">SYARAT & KETENTUAN</h2>
+                    
+                    <ol class="text-[#6d0000] text-sm space-y-2 list-decimal list-outside ml-5" style="font-family: 'Forum', serif; line-height: 1.5;">
+                        <li>Setiap pemegang tiket berhak menempati kursi <strong>sesuai dengan jumlah kursi yang dibeli</strong> dan tertera pada tiket.</li>
+                        <li><strong>Wajib menunjukkan tiket masuk</strong> (fisik atau digital) saat proses registrasi.</li>
+                        <li>Tiket yang telah dibeli <strong>tidak dapat diuangkan kembali</strong> dan <strong>tidak dapat dipindahtangankan</strong> tanpa persetujuan panitia.</li>
+                        <li><strong>Kehilangan atau kerusakan tiket</strong> sepenuhnya menjadi tanggung jawab pemilik tiket.</li>
+                        <li>Tamu diharapkan <strong>hadir tepat waktu</strong> sesuai jadwal acara. Keterlambatan dapat menyebabkan tamu <strong>tidak diperkenankan masuk</strong>.</li>
+                        <li>Panitia berhak <strong>menolak masuk</strong> apabila tiket tidak valid atau tamu melanggar ketentuan acara.</li>
+                        <li>Dilarang membawa <strong>makanan, minuman, atau barang terlarang</strong> ke dalam area acara.</li>
+                        <li>Selama acara berlangsung, tamu wajib <strong>menjaga ketertiban, keamanan, dan kenyamanan</strong> bersama.</li>
+                        <li>Dengan menggunakan tiket ini, tamu dianggap <strong>telah menyetujui seluruh syarat dan ketentuan</strong> yang berlaku.</li>
+                    </ol>
                 </div>
+            </div>
+            
+            <!-- Side Panel -->
+            <div class="w-28 bg-[#6d0000] p-3 flex items-center justify-center text-white">
             </div>
         </div>
         
         <!-- Buttons -->
-        <div class="text-center mt-6 flex justify-center gap-3">
-            <button onclick="window.print()" class="inline-flex items-center gap-2 bg-[#d4a853] hover:bg-[#c49843] text-gray-900 font-medium px-6 py-3 rounded-lg transition-colors">
+        <div class="text-center mt-6 flex justify-center gap-3 flex-wrap">
+            <button onclick="downloadImage(1)" class="inline-flex items-center gap-2 bg-[#6d0000] hover:bg-[#5a3500] text-white font-medium px-6 py-3 rounded-lg transition-colors">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
                 </svg>
                 Unduh Tiket
+            </button>
+            <button onclick="downloadImage(2)" class="inline-flex items-center gap-2 bg-[#6d0000] hover:bg-[#5a3500] text-white font-medium px-6 py-3 rounded-lg transition-colors">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+                </svg>
+                Unduh S&K
             </button>
             <a href="/static/assets/image.png" target="_blank" class="inline-flex items-center gap-2 bg-gray-600 hover:bg-gray-700 text-white font-medium px-6 py-3 rounded-lg transition-colors">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -229,6 +272,38 @@
             </a>
         </div>
     </div>
+    
+    <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+    <script>
+    async function downloadImage(page) {
+        const el = document.getElementById('ticket-page-' + page);
+        const btn = event.target.closest('button');
+        const originalText = btn.innerHTML;
+        btn.innerHTML = '<span class="animate-pulse">Mengunduh...</span>';
+        btn.disabled = true;
+        
+        try {
+            const canvas = await html2canvas(el, {
+                scale: 2,
+                useCORS: true,
+                allowTaint: true,
+                backgroundColor: '#f6f7ec',
+                logging: false
+            });
+            
+            const link = document.createElement('a');
+            link.download = page === 1 ? 'tiket-baiat-{{ transaction.name | replace(" ", "-") }}.png' : 'tiket-syarat-ketentuan.png';
+            link.href = canvas.toDataURL('image/png');
+            link.click();
+        } catch(e) {
+            console.error(e);
+            alert('Gagal mengunduh. Coba screenshot manual.');
+        }
+        
+        btn.innerHTML = originalText;
+        btn.disabled = false;
+    }
+    </script>
     {% endif %}
 </div>
 
@@ -238,12 +313,63 @@
         text-orientation: mixed;
     }
     
+    .writing-vertical-left {
+        writing-mode: vertical-rl;
+        text-orientation: mixed;
+        transform: rotate(180deg);
+    }
+    
+    .ticket-main::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background-image: url('/static/assets/background-yarsi.png');
+        background-size: contain;
+        background-position: center;
+        background-repeat: no-repeat;
+        opacity: 0.15;
+        pointer-events: none;
+    }
+    
+    .ticket-texture::after {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background-image: url('/static/assets/paper.png');
+        background-repeat: repeat;
+        z-index: 1;
+        filter: invert(1);
+        opacity: 0.3;
+        pointer-events: none;
+    }
+    
     @media print {
         body {
             background: white !important;
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
         }
-        button {
+        
+        button, a.inline-flex {
             display: none !important;
+        }
+        
+        .min-h-screen {
+            min-height: auto !important;
+        }
+        
+        #ticket-page-1, #ticket-page-2 {
+            page-break-inside: avoid !important;
+            break-inside: avoid !important;
+            margin-bottom: 20px;
+        }
+        
+        #ticket-page-2 {
+            page-break-before: always !important;
+        }
+        
+        .overflow-x-auto {
+            overflow: visible !important;
         }
     }
 </style>

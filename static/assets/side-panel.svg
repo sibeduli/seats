@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="112" height="300" viewBox="0 0 112 300">
+  <rect width="112" height="300" fill="#6d0000"/>
+  <g transform="rotate(-90, 56, 150)">
+    <text x="56" y="130" fill="white" font-family="Montserrat, sans-serif" font-size="20" font-weight="bold" text-anchor="middle">PUKUL 07.00</text>
+    <text x="56" y="155" fill="white" font-family="Montserrat, sans-serif" font-size="13" font-weight="medium" text-anchor="middle" letter-spacing="0.1em">11 Februari 2026</text>
+    <text x="56" y="170" fill="white" font-family="Montserrat, sans-serif" font-size="13" font-weight="medium" text-anchor="middle" letter-spacing="0.1em">Aula Ar - Rahman, lt.12</text>
+    <text x="56" y="185" fill="white" font-family="Montserrat, sans-serif" font-size="13" font-weight="medium" text-anchor="middle" letter-spacing="0.1em">Universitas YARSI</text>
+  </g>
+</svg>
