@@ -16,7 +16,6 @@
             <button onclick="showRegion('WLA')" id="btn-WLA" class="region-btn px-2.5 py-1.5 text-xs font-medium rounded-md transition-all bg-seat-available text-white">WLA</button>
             <button onclick="showRegion('WLB')" id="btn-WLB" class="region-btn px-2.5 py-1.5 text-xs font-medium rounded-md transition-all text-gray-600 hover:text-gray-800">WLB</button>
             <button onclick="showRegion('CL')" id="btn-CL" class="region-btn px-2.5 py-1.5 text-xs font-medium rounded-md transition-all text-gray-600 hover:text-gray-800">CL</button>
-            <button onclick="showRegion('C')" id="btn-C" class="region-btn px-2.5 py-1.5 text-xs font-medium rounded-md transition-all text-gray-600 hover:text-gray-800">C</button>
             <button onclick="showRegion('CR')" id="btn-CR" class="region-btn px-2.5 py-1.5 text-xs font-medium rounded-md transition-all text-gray-600 hover:text-gray-800">CR</button>
             <button onclick="showRegion('WRB')" id="btn-WRB" class="region-btn px-2.5 py-1.5 text-xs font-medium rounded-md transition-all text-gray-600 hover:text-gray-800">WRB</button>
             <button onclick="showRegion('WRA')" id="btn-WRA" class="region-btn px-2.5 py-1.5 text-xs font-medium rounded-md transition-all text-gray-600 hover:text-gray-800">WRA</button>
@@ -195,11 +194,10 @@
 <script>
     const regionConfig = {
         'WLA': { name: 'Wing Left A', type: 'stepped', seatsPerRow: [10, 10, 10, 10, 10, 10, 10, 10], leanDirection: 'left' },
-        'WLB': { name: 'Wing Left B', type: 'stepped', seatsPerRow: [2, 4, 5, 7, 8, 9, 10, 10, 10], leanDirection: 'left' },
-        'CL': { name: 'Center Left', type: 'stepped', seatsPerRow: [11, 11, 11, 11, 11, 11, 11, 10, 9, 8, 6, 4, 2], leanDirection: 'right' },
-        'C': { name: 'Center', type: 'stepped', seatsPerRow: [10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 8], leanDirection: 'center' },
-        'CR': { name: 'Center Right', type: 'stepped', seatsPerRow: [11, 11, 11, 11, 11, 11, 11, 10, 9, 8, 6, 4, 2], leanDirection: 'left' },
-        'WRB': { name: 'Wing Right B', type: 'stepped', seatsPerRow: [2, 4, 5, 7, 8, 9, 10, 10, 10], leanDirection: 'right' },
+        'WLB': { name: 'Wing Left B', type: 'stepped', seatsPerRow: [3, 5, 7, 8, 10, 12, 13, 15, 15], leanDirection: 'left' },
+        'CL': { name: 'Center Left', type: 'stepped', seatsPerRow: [15, 15, 15, 15, 15, 16, 16, 15, 13, 11, 11, 9], leanDirection: 'right' },
+        'CR': { name: 'Center Right', type: 'stepped', seatsPerRow: [15, 15, 15, 15, 15, 16, 16, 15, 13, 11, 11, 9], leanDirection: 'left' },
+        'WRB': { name: 'Wing Right B', type: 'stepped', seatsPerRow: [3, 5, 7, 8, 10, 12, 13, 15, 15], leanDirection: 'right' },
         'WRA': { name: 'Wing Right A', type: 'stepped', seatsPerRow: [10, 10, 10, 10, 10, 10, 10, 10], leanDirection: 'right' }
     };
 
