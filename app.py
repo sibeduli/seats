@@ -550,6 +550,48 @@ def get_recent_bookings():
     return jsonify({'bookings': bookings})
 
 
+@app.route('/api/export-csv')
+@api_login_required
+def export_csv():
+    """Export all booking data to CSV"""
+    import csv
+    import io
+    
+    transactions = Transaction.query.order_by(Transaction.timestamp.desc()).all()
+    
+    output = io.StringIO()
+    writer = csv.writer(output)
+    
+    # Header
+    writer.writerow(['No', 'Nama', 'No HP', 'Kursi', 'Status', 'Waktu', 'Ticket Hash'])
+    
+    for i, t in enumerate(transactions, 1):
+        seats = ', '.join([f"{s.region}-{s.seat_number}" for s in t.seats])
+        writer.writerow([
+            i,
+            t.name,
+            t.phone,
+            seats,
+            t.status,
+            t.timestamp.strftime('%Y-%m-%d %H:%M:%S'),
+            t.ticket_hash
+        ])
+    
+    output.seek(0)
+    
+    # Generate filename with timestamp
+    from datetime import datetime
+    timestamp = datetime.now().strftime('%Y%m%d_%H%M%S%f')[:18]  # YYYYMMDD_HHMMSSmm
+    filename = f'yarsi_hippocratic_oath_bookings_{timestamp}.csv'
+    
+    from flask import Response
+    return Response(
+        output.getvalue(),
+        mimetype='text/csv',
+        headers={'Content-Disposition': f'attachment; filename={filename}'}
+    )
+
+
 # ============ SEAT AVAILABILITY API ============
 
 @app.route('/admin/availability')
