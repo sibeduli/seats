@@ -199,11 +199,15 @@ def login():
         if is_rate_limited(client_ip + '_login', max_requests=5, window_seconds=60):
             error = 'Terlalu banyak percobaan, coba lagi nanti'
         else:
+            panitia_name = request.form.get('panitia_name', '').strip() or 'Unknown'
             password = request.form.get('password', '')
             if hashlib.sha256(password.encode()).hexdigest() == ADMIN_PASSWORD_HASH:
                 session['logged_in'] = True
+                session['panitia_name'] = panitia_name
+                logger.info(f"LOGIN: panitia={panitia_name}, ip={client_ip}")
                 return redirect('/admin')
             else:
+                logger.warning(f"LOGIN FAILED: panitia={panitia_name}, ip={client_ip}")
                 error = 'Password salah'
     
     return render_template('login.html', error=error)
@@ -449,7 +453,11 @@ def book_seats():
     
     # Log the booking
     seat_list = [f"{s['region']}-{s['number']}" for s in seats]
-    logger.info(f"BOOKING: name={name}, phone={phone}, seats={seat_list}, status={status}, admin={is_admin}, hash={ticket_hash}")
+    if is_admin:
+        panitia = session.get('panitia_name', 'Unknown')
+        logger.info(f"BOOKING: name={name}, participant={participant_name}, phone={phone}, seats={seat_list}, wheelchair={wheelchair_count}, status={status}, by_panitia={panitia}, ip={client_ip}, hash={ticket_hash}")
+    else:
+        logger.info(f"BOOKING: name={name}, participant={participant_name}, phone={phone}, seats={seat_list}, wheelchair={wheelchair_count}, status={status}, guest=True, ip={client_ip}, hash={ticket_hash}")
     
     return jsonify({
         'success': True,
@@ -472,7 +480,8 @@ def approve_transaction(transaction_id):
         db.session.commit()
         
         seats = [f"{s.region}-{s.seat_number}" for s in transaction.seats]
-        logger.info(f"APPROVE: id={transaction_id}, name={transaction.name}, seats={seats}, hash={transaction.ticket_hash}")
+        panitia = session.get('panitia_name', 'Unknown')
+        logger.info(f"APPROVE: id={transaction_id}, name={transaction.name}, seats={seats}, hash={transaction.ticket_hash}, by_panitia={panitia}, ip={request.remote_addr}")
         return jsonify({'success': True})
     except Exception as e:
         db.session.rollback()
@@ -496,7 +505,8 @@ def reject_transaction(transaction_id):
             seat.transaction_id = None
         
         db.session.commit()
-        logger.info(f"REJECT: id={transaction_id}, name={transaction.name}, seats={seats}, hash={transaction.ticket_hash}")
+        panitia = session.get('panitia_name', 'Unknown')
+        logger.info(f"REJECT: id={transaction_id}, name={transaction.name}, seats={seats}, hash={transaction.ticket_hash}, by_panitia={panitia}, ip={request.remote_addr}")
         return jsonify({'success': True})
     except Exception as e:
         db.session.rollback()
@@ -520,7 +530,8 @@ def revoke_transaction(transaction_id):
             seat.transaction_id = None
         
         db.session.commit()
-        logger.info(f"REVOKE: id={transaction_id}, name={transaction.name}, seats={seats}, hash={transaction.ticket_hash}")
+        panitia = session.get('panitia_name', 'Unknown')
+        logger.info(f"REVOKE: id={transaction_id}, name={transaction.name}, seats={seats}, hash={transaction.ticket_hash}, by_panitia={panitia}, ip={request.remote_addr}")
         return jsonify({'success': True})
     except Exception as e:
         db.session.rollback()
@@ -661,7 +672,8 @@ def set_region_availability():
             db.session.add(av)
         
         db.session.commit()
-        logger.info(f"AVAILABILITY: region={region}, available={is_available}")
+        panitia = session.get('panitia_name', 'Unknown')
+        logger.info(f"AVAILABILITY: region={region}, available={is_available}, by_panitia={panitia}, ip={request.remote_addr}")
         return jsonify({'success': True})
     except Exception as e:
         db.session.rollback()
@@ -690,7 +702,8 @@ def set_seat_availability():
             db.session.add(av)
         
         db.session.commit()
-        logger.info(f"AVAILABILITY: seat={region}-{seat_number}, available={is_available}")
+        panitia = session.get('panitia_name', 'Unknown')
+        logger.info(f"AVAILABILITY: seat={region}-{seat_number}, available={is_available}, by_panitia={panitia}, ip={request.remote_addr}")
         return jsonify({'success': True})
     except Exception as e:
         db.session.rollback()
@@ -720,7 +733,8 @@ def set_bulk_availability():
                 db.session.add(av)
         
         db.session.commit()
-        logger.info(f"AVAILABILITY BULK: region={region}, seats={seats}, available={is_available}")
+        panitia = session.get('panitia_name', 'Unknown')
+        logger.info(f"AVAILABILITY BULK: region={region}, seats={seats}, available={is_available}, by_panitia={panitia}, ip={request.remote_addr}")
         return jsonify({'success': True})
     except Exception as e:
         db.session.rollback()
