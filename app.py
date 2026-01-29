@@ -161,6 +161,29 @@ class SeatAvailability(db.Model):
         return f'<SeatAvailability {self.region}: {self.is_available}>'
 
 
+class AppSetting(db.Model):
+    """Application settings stored in database"""
+    id = db.Column(db.Integer, primary_key=True)
+    key = db.Column(db.String(50), unique=True, nullable=False)
+    value = db.Column(db.String(200), nullable=True)
+    
+    @staticmethod
+    def get(key, default=None):
+        setting = AppSetting.query.filter_by(key=key).first()
+        return setting.value if setting else default
+    
+    @staticmethod
+    def set(key, value):
+        setting = AppSetting.query.filter_by(key=key).first()
+        if setting:
+            setting.value = value
+        else:
+            setting = AppSetting(key=key, value=value)
+            db.session.add(setting)
+        db.session.commit()
+        return setting
+
+
 def expire_pending_tickets():
     """Auto-expire pending tickets older than PENDING_TIMEOUT_MINUTES"""
     try:
@@ -309,6 +332,8 @@ def qr_page():
 @app.route('/book')
 def guest_booking():
     """Public guest booking page"""
+    if not is_sales_open():
+        return redirect('/closed')
     return render_template('guest_booking.html')
 
 
@@ -366,6 +391,12 @@ def check_seats():
 @app.route('/api/book', methods=['POST'])
 def book_seats():
     """Book seats and create transaction"""
+    is_admin = session.get('logged_in', False)
+    
+    # Block guest bookings when sales are closed
+    if not is_admin and not is_sales_open():
+        return jsonify({'error': 'Pembelian tiket sedang ditutup'}), 403
+    
     # Rate limiting (10 requests per minute per IP)
     # Bypass for benchmarking (requires BENCHMARK_MODE env var)
     bypass = request.headers.get('X-Benchmark-Bypass') == 'true' and os.environ.get('BENCHMARK_MODE') == 'true'
@@ -382,7 +413,6 @@ def book_seats():
     phone = sanitize_text(data.get('phone', ''))
     seats = data.get('seats', [])  # List of {region, number}
     wheelchair_count = data.get('wheelchair_count', 0)  # Number of wheelchairs
-    is_admin = session.get('logged_in', False)
     
     # Validate wheelchair count
     try:
@@ -621,13 +651,45 @@ def export_csv():
     )
 
 
+# ============ SALES TOGGLE ============
+
+def is_sales_open():
+    """Check if ticket sales are open"""
+    return AppSetting.get('sales_open', 'true') == 'true'
+
+
+@app.route('/closed')
+def sales_closed_page():
+    """Page shown when sales are closed"""
+    return render_template('closed.html')
+
+
+@app.route('/api/sales-status')
+def get_sales_status():
+    """Get current sales status"""
+    return jsonify({'is_open': is_sales_open()})
+
+
+@app.route('/api/sales-toggle', methods=['POST'])
+@api_login_required
+def toggle_sales():
+    """Toggle ticket sales open/closed"""
+    data = request.get_json()
+    is_open = data.get('is_open', True)
+    AppSetting.set('sales_open', 'true' if is_open else 'false')
+    panitia = session.get('panitia_name', 'Unknown')
+    logger.info(f"SALES TOGGLE: is_open={is_open}, by_panitia={panitia}, ip={request.remote_addr}")
+    return jsonify({'success': True, 'is_open': is_open})
+
+
 # ============ SEAT AVAILABILITY API ============
 
 @app.route('/admin/availability')
 @login_required
 def availability_page():
     """Admin page to manage seat availability"""
-    return render_template('availability.html')
+    sales_open = is_sales_open()
+    return render_template('availability.html', sales_open=sales_open)
 
 
 @app.route('/api/availability')
