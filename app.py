@@ -121,7 +121,8 @@ def api_login_required(f):
 class Transaction(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     ticket_hash = db.Column(db.String(32), unique=True, nullable=False)
-    name = db.Column(db.String(100), nullable=False)
+    name = db.Column(db.String(100), nullable=False)  # Nama lengkap pemesan
+    participant_name = db.Column(db.String(100), nullable=True)  # Nama peserta Baiat
     phone = db.Column(db.String(20), nullable=False)
     timestamp = db.Column(db.DateTime, default=datetime.utcnow)
     status = db.Column(db.String(20), default='pending')  # pending / active / revoked
@@ -276,6 +277,7 @@ def booked_list():
         query = query.filter(
             db.or_(
                 Transaction.name.ilike(f'%{search}%'),
+                Transaction.participant_name.ilike(f'%{search}%'),
                 Transaction.phone.ilike(f'%{search}%'),
                 seat_subquery
             )
@@ -372,6 +374,7 @@ def book_seats():
         return jsonify({'error': 'Invalid request'}), 400
     
     name = sanitize_text(data.get('name', ''))
+    participant_name = sanitize_text(data.get('participant_name', ''))
     phone = sanitize_text(data.get('phone', ''))
     seats = data.get('seats', [])  # List of {region, number}
     wheelchair_count = data.get('wheelchair_count', 0)  # Number of wheelchairs
@@ -386,12 +389,14 @@ def book_seats():
         wheelchair_count = 0
     
     # Input validation
-    if not name or not phone or not seats:
-        return jsonify({'error': 'Name, phone and seats required'}), 400
+    if not name or not participant_name or not phone or not seats:
+        return jsonify({'error': 'Nama lengkap, nama peserta Baiat, nomor HP dan kursi harus diisi'}), 400
     
     # Length limits to prevent abuse
     if len(name) > 100:
         return jsonify({'error': 'Nama terlalu panjang (max 100 karakter)'}), 400
+    if len(participant_name) > 100:
+        return jsonify({'error': 'Nama peserta Baiat terlalu panjang (max 100 karakter)'}), 400
     if len(phone) > 20:
         return jsonify({'error': 'Nomor telepon tidak valid'}), 400
     if len(seats) > 10:
@@ -421,7 +426,7 @@ def book_seats():
         # Create transaction - active if admin, pending if guest
         ticket_hash = secrets.token_hex(16)
         status = 'active' if is_admin else 'pending'
-        transaction = Transaction(ticket_hash=ticket_hash, name=name, phone=phone, status=status, booked_by_admin=is_admin, wheelchair_count=wheelchair_count)
+        transaction = Transaction(ticket_hash=ticket_hash, name=name, participant_name=participant_name, phone=phone, status=status, booked_by_admin=is_admin, wheelchair_count=wheelchair_count)
         db.session.add(transaction)
         db.session.flush()  # Get transaction ID
         
@@ -573,7 +578,7 @@ def export_csv():
     writer = csv.writer(output)
     
     # Header
-    writer.writerow(['No', 'Nama', 'No HP', 'Kursi', 'Kursi Roda', 'Status', 'Waktu', 'Ticket Hash'])
+    writer.writerow(['No', 'Nama Lengkap', 'Nama Peserta Baiat', 'No HP', 'Kursi', 'Kursi Roda', 'Status', 'Waktu', 'Ticket Hash'])
     
     for i, t in enumerate(transactions, 1):
         seats = ', '.join([f"{s.region}-{s.seat_number}" for s in t.seats])
@@ -581,6 +586,7 @@ def export_csv():
         writer.writerow([
             i,
             t.name,
+            t.participant_name or '',
             t.phone,
             seats,
             wheelchair,
