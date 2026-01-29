@@ -29,17 +29,86 @@
 <div class="min-h-screen flex items-center justify-center p-4">
     {% if transaction.status == 'revoked' or transaction.status == 'expired' %}
     <!-- Revoked/Expired Ticket -->
-    <div class="bg-red-900/20 border border-red-500 rounded-lg p-8 text-center max-w-md">
-        <svg class="w-16 h-16 mx-auto text-red-500 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
-        </svg>
-        <h1 class="font-serif text-2xl text-red-500 mb-2">Tiket Tidak Valid</h1>
-        {% if transaction.status == 'expired' %}
-        <p class="text-gray-400">Tiket anda telah kadaluarsa karena tidak dikonfirmasi dalam 30 menit. Silahkan pesan ulang.</p>
-        {% else %}
-        <p class="text-gray-400">Maaf tiket anda hangus, silahkan hubungi panitia</p>
-        {% endif %}
+    <div class="w-full max-w-md">
+        <div class="bg-red-900/20 border border-red-500 rounded-lg p-8 text-center mb-6">
+            <svg class="w-16 h-16 mx-auto text-red-500 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+            </svg>
+            <h1 class="font-serif text-2xl text-red-500 mb-2">Tiket Tidak Valid</h1>
+            {% if transaction.status == 'expired' %}
+            <p class="text-gray-400 mb-4">Tiket anda telah kadaluarsa karena tidak dikonfirmasi dalam 30 menit. Silahkan pesan ulang atau hubungi panitia.</p>
+            {% else %}
+            <p class="text-gray-400 mb-4">Maaf tiket anda hangus, silahkan hubungi panitia atau pesan ulang.</p>
+            {% endif %}
+            
+            <!-- Contact Person Cards -->
+            <div class="mb-4">
+                <p class="text-red-400 text-sm font-medium mb-2 text-left">Contact Person</p>
+                <div class="grid grid-cols-2 gap-2">
+                    <!-- Admin Adifa -->
+                    <div class="bg-red-500/20 rounded-lg p-2 text-left">
+                        <p class="text-white text-xs font-medium">Admin Adifa</p>
+                        <p class="text-red-300 text-xs mb-1">0813-5381-6784</p>
+                        <div class="flex gap-1">
+                            <a href="https://wa.me/6281353816784" target="_blank" class="inline-flex items-center gap-1 bg-green-600 hover:bg-green-700 text-white px-2 py-1 rounded text-[10px] transition-colors">WA</a>
+                            <button onclick="copyPhone('081353816784')" class="inline-flex items-center gap-1 bg-gray-600 hover:bg-gray-500 text-white px-2 py-1 rounded text-[10px] transition-colors">Copy</button>
+                        </div>
+                    </div>
+                    <!-- Admin Hanni -->
+                    <div class="bg-red-500/20 rounded-lg p-2 text-left">
+                        <p class="text-white text-xs font-medium">Admin Hanni</p>
+                        <p class="text-red-300 text-xs mb-1">0813-1159-1770</p>
+                        <div class="flex gap-1">
+                            <a href="https://wa.me/6281311591770" target="_blank" class="inline-flex items-center gap-1 bg-green-600 hover:bg-green-700 text-white px-2 py-1 rounded text-[10px] transition-colors">WA</a>
+                            <button onclick="copyPhone('081311591770')" class="inline-flex items-center gap-1 bg-gray-600 hover:bg-gray-500 text-white px-2 py-1 rounded text-[10px] transition-colors">Copy</button>
+                        </div>
+                    </div>
+                    <!-- Admin Novia -->
+                    <div class="bg-red-500/20 rounded-lg p-2 text-left">
+                        <p class="text-white text-xs font-medium">Admin Novia</p>
+                        <p class="text-red-300 text-xs mb-1">0852-1184-2750</p>
+                        <div class="flex gap-1">
+                            <a href="https://wa.me/6285211842750" target="_blank" class="inline-flex items-center gap-1 bg-green-600 hover:bg-green-700 text-white px-2 py-1 rounded text-[10px] transition-colors">WA</a>
+                            <button onclick="copyPhone('085211842750')" class="inline-flex items-center gap-1 bg-gray-600 hover:bg-gray-500 text-white px-2 py-1 rounded text-[10px] transition-colors">Copy</button>
+                        </div>
+                    </div>
+                    <!-- Admin Aulyana -->
+                    <div class="bg-red-500/20 rounded-lg p-2 text-left">
+                        <p class="text-white text-xs font-medium">Admin Aulyana</p>
+                        <p class="text-red-300 text-xs mb-1">0877-7000-9722</p>
+                        <div class="flex gap-1">
+                            <a href="https://wa.me/6287770009722" target="_blank" class="inline-flex items-center gap-1 bg-green-600 hover:bg-green-700 text-white px-2 py-1 rounded text-[10px] transition-colors">WA</a>
+                            <button onclick="copyPhone('087770009722')" class="inline-flex items-center gap-1 bg-gray-600 hover:bg-gray-500 text-white px-2 py-1 rounded text-[10px] transition-colors">Copy</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Pesan Ulang Button -->
+            <a href="/book" class="inline-flex items-center justify-center gap-2 w-full bg-white hover:bg-gray-100 text-gray-800 font-medium px-4 py-3 rounded-lg transition-colors">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
+                </svg>
+                Pesan Tiket Baru
+            </a>
+        </div>
     </div>
+    
+    <!-- Toast Notification -->
+    <div id="toast" class="fixed bottom-4 left-1/2 transform -translate-x-1/2 bg-green-600 text-white px-6 py-3 rounded-lg shadow-lg hidden transition-opacity duration-300">
+        Nomor disalin
+    </div>
+    
+    <script>
+    function copyPhone(phone) {
+        navigator.clipboard.writeText(phone).then(() => {
+            const toast = document.getElementById('toast');
+            toast.textContent = 'Nomor disalin: ' + phone;
+            toast.classList.remove('hidden');
+            setTimeout(() => toast.classList.add('hidden'), 2000);
+        });
+    }
+    </script>
     {% elif transaction.status == 'pending' %}
     <!-- Pending Ticket -->
     <div class="w-full max-w-md">
