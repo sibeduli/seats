@@ -645,10 +645,8 @@
             statusEl.classList.add('hidden');
             
             if (data.success) {
-                // Open ticket in new tab (prevents back navigation issues)
-                window.open(data.ticket_url, '_blank');
-                // Redirect current page to home
-                window.location.href = '/';
+                // Redirect to ticket page (same tab to avoid popup blockers)
+                window.location.href = data.ticket_url;
             } else {
                 errorEl.classList.remove('hidden');
                 errorMsg.textContent = data.error || 'Gagal memesan kursi';
