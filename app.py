@@ -126,6 +126,7 @@ class Transaction(db.Model):
     timestamp = db.Column(db.DateTime, default=datetime.utcnow)
     status = db.Column(db.String(20), default='pending')  # pending / active / revoked
     booked_by_admin = db.Column(db.Boolean, default=False)  # True if booked by admin
+    wheelchair_count = db.Column(db.Integer, default=0)  # Number of wheelchairs needed
     seats = db.relationship('Seat', backref='transaction', lazy=True)
 
     def __repr__(self):
@@ -373,7 +374,16 @@ def book_seats():
     name = sanitize_text(data.get('name', ''))
     phone = sanitize_text(data.get('phone', ''))
     seats = data.get('seats', [])  # List of {region, number}
+    wheelchair_count = data.get('wheelchair_count', 0)  # Number of wheelchairs
     is_admin = session.get('logged_in', False)
+    
+    # Validate wheelchair count
+    try:
+        wheelchair_count = int(wheelchair_count) if wheelchair_count else 0
+        if wheelchair_count < 0:
+            wheelchair_count = 0
+    except (ValueError, TypeError):
+        wheelchair_count = 0
     
     # Input validation
     if not name or not phone or not seats:
@@ -411,7 +421,7 @@ def book_seats():
         # Create transaction - active if admin, pending if guest
         ticket_hash = secrets.token_hex(16)
         status = 'active' if is_admin else 'pending'
-        transaction = Transaction(ticket_hash=ticket_hash, name=name, phone=phone, status=status, booked_by_admin=is_admin)
+        transaction = Transaction(ticket_hash=ticket_hash, name=name, phone=phone, status=status, booked_by_admin=is_admin, wheelchair_count=wheelchair_count)
         db.session.add(transaction)
         db.session.flush()  # Get transaction ID
         
@@ -563,15 +573,17 @@ def export_csv():
     writer = csv.writer(output)
     
     # Header
-    writer.writerow(['No', 'Nama', 'No HP', 'Kursi', 'Status', 'Waktu', 'Ticket Hash'])
+    writer.writerow(['No', 'Nama', 'No HP', 'Kursi', 'Kursi Roda', 'Status', 'Waktu', 'Ticket Hash'])
     
     for i, t in enumerate(transactions, 1):
         seats = ', '.join([f"{s.region}-{s.seat_number}" for s in t.seats])
+        wheelchair = t.wheelchair_count if t.wheelchair_count else 0
         writer.writerow([
             i,
             t.name,
             t.phone,
             seats,
+            wheelchair,
             t.status,
             t.timestamp.strftime('%Y-%m-%d %H:%M:%S'),
             t.ticket_hash

@@ -76,7 +76,12 @@
                         <td class="py-2 px-2 sm:py-3 sm:px-4 text-gray-700 font-medium text-xs sm:text-sm">
                             {% for seat in t.seats %}{{ seat.region }}-{{ seat.seat_number }}{% if not loop.last %}, {% endif %}{% endfor %}
                         </td>
-                        <td class="py-2 px-2 sm:py-3 sm:px-4 text-gray-700 text-xs sm:text-sm">{{ t.name }}</td>
+                        <td class="py-2 px-2 sm:py-3 sm:px-4 text-gray-700 text-xs sm:text-sm">
+                            {{ t.name }}
+                            {% if t.wheelchair_count and t.wheelchair_count > 0 %}
+                            <span class="ml-1 px-1.5 py-0.5 text-[10px] rounded-full bg-purple-100 text-purple-700" title="Kursi Roda: {{ t.wheelchair_count }}">🦽 {{ t.wheelchair_count }}</span>
+                            {% endif %}
+                        </td>
                         <td class="py-2 px-2 sm:py-3 sm:px-4 text-gray-700 text-xs sm:text-sm hidden sm:table-cell">{{ t.phone }}</td>
                         <td class="py-2 px-2 sm:py-3 sm:px-4">
                             {% if t.status == 'active' %}

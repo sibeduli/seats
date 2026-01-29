@@ -139,7 +139,20 @@
             <input type="text" id="guest-name" placeholder="Masukkan nama peserta..."
                 class="w-full px-3 sm:px-4 py-2.5 sm:py-3 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 mb-2 sm:mb-3">
             <input type="tel" id="guest-phone" placeholder="Masukkan nomor HP (contoh: 08123456789)"
-                class="w-full px-3 sm:px-4 py-2.5 sm:py-3 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 mb-3 sm:mb-4">
+                class="w-full px-3 sm:px-4 py-2.5 sm:py-3 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 mb-2 sm:mb-3">
+            
+            <!-- Wheelchair Question -->
+            <div class="mb-3 sm:mb-4 p-3 bg-gray-50 rounded-lg">
+                <label class="flex items-center gap-2 text-sm text-gray-700 cursor-pointer">
+                    <input type="checkbox" id="has-wheelchair" onchange="toggleWheelchairInput()" class="w-4 h-4 rounded border-gray-300 text-blue-500 focus:ring-blue-500">
+                    <span>Apakah membawa kursi roda?</span>
+                </label>
+                <div id="wheelchair-input-container" class="hidden mt-2">
+                    <input type="number" id="wheelchair-count" min="1" max="10" value="1" placeholder="Jumlah kursi roda"
+                        class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                </div>
+            </div>
+            
             <button onclick="bookSeats()"
                 class="w-full bg-seat-available hover:bg-blue-600 text-white font-medium py-2.5 sm:py-3 text-sm sm:text-base rounded-lg transition-colors">
                 Pesan Kursi
@@ -162,9 +175,13 @@
                 <p class="text-gray-500 text-sm">Nomor HP</p>
                 <p id="confirm-phone" class="font-medium text-gray-800">-</p>
             </div>
-            <div>
+            <div class="mb-3">
                 <p class="text-gray-500 text-sm">Kursi Dipilih</p>
                 <p id="confirm-seats" class="font-medium text-gray-800">-</p>
+            </div>
+            <div id="confirm-wheelchair-section" class="hidden">
+                <p class="text-gray-500 text-sm">Kursi Roda</p>
+                <p id="confirm-wheelchair" class="font-medium text-gray-800">-</p>
             </div>
 
             <!-- Mini-map Preview -->
@@ -372,12 +389,31 @@
         });
     }
 
-    let pendingBooking = { name: '', seats: [] };
+    let pendingBooking = { name: '', seats: [], wheelchair_count: 0 };
+
+    function toggleWheelchairInput() {
+        const checkbox = document.getElementById('has-wheelchair');
+        const container = document.getElementById('wheelchair-input-container');
+        if (checkbox.checked) {
+            container.classList.remove('hidden');
+        } else {
+            container.classList.add('hidden');
+            document.getElementById('wheelchair-count').value = '1';
+        }
+    }
+
+    function getWheelchairCount() {
+        const checkbox = document.getElementById('has-wheelchair');
+        if (!checkbox.checked) return 0;
+        const count = parseInt(document.getElementById('wheelchair-count').value) || 0;
+        return Math.max(0, Math.min(10, count));
+    }
 
     function bookSeats() {
         const name = document.getElementById('guest-name').value.trim();
         const phone = document.getElementById('guest-phone').value.trim();
         const seats = getSelectedSeats();
+        const wheelchair_count = getWheelchairCount();
 
         if (!name) {
             alert('Mohon masukkan nama peserta');
@@ -393,10 +429,20 @@
         }
 
         // Store pending booking and show confirmation
-        pendingBooking = { name, phone, seats };
+        pendingBooking = { name, phone, seats, wheelchair_count };
         document.getElementById('confirm-name').textContent = name;
         document.getElementById('confirm-phone').textContent = phone;
         document.getElementById('confirm-seats').textContent = seats.map(s => `${s.region}-${s.number}`).join(', ');
+        
+        // Show wheelchair info if applicable
+        const wheelchairSection = document.getElementById('confirm-wheelchair-section');
+        if (wheelchair_count > 0) {
+            wheelchairSection.classList.remove('hidden');
+            document.getElementById('confirm-wheelchair').textContent = wheelchair_count + ' unit';
+        } else {
+            wheelchairSection.classList.add('hidden');
+        }
+        
         document.getElementById('confirm-error').classList.add('hidden');
         document.getElementById('confirm-status').classList.add('hidden');
         document.getElementById('confirm-btn').disabled = false;
@@ -442,11 +488,11 @@
 
     function cancelConfirmation() {
         document.getElementById('confirm-modal').classList.add('hidden');
-        pendingBooking = { name: '', seats: [] };
+        pendingBooking = { name: '', seats: [], wheelchair_count: 0 };
     }
 
     async function confirmBooking() {
-        const { name, phone, seats } = pendingBooking;
+        const { name, phone, seats, wheelchair_count } = pendingBooking;
         const confirmBtn = document.getElementById('confirm-btn');
         const statusEl = document.getElementById('confirm-status');
         const errorEl = document.getElementById('confirm-error');
@@ -478,7 +524,7 @@
             const res = await fetch('/api/book', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ name, phone, seats })
+                body: JSON.stringify({ name, phone, seats, wheelchair_count })
             });
             const data = await res.json();
 
