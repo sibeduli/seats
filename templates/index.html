@@ -8,6 +8,13 @@
     <div class="text-center mb-4 sm:mb-6">
         <h1 class="font-serif text-2xl sm:text-3xl md:text-4xl text-gray-800 mb-1">Pilih Tempat Duduk Anda</h1>
         <p class="text-gray-500 text-xs sm:text-sm md:text-base">BAIAT DOKTER MUSLIM - BATCH FEBRUARI 2026</p>
+        <a href="/admin/availability" class="inline-flex items-center gap-1 mt-2 px-3 py-1.5 bg-amber-100 hover:bg-amber-200 text-amber-800 text-xs rounded-lg transition-colors">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+            </svg>
+            Kelola Ketersediaan Kursi
+        </a>
     </div>
 
     <!-- Venue Map -->
@@ -79,6 +86,11 @@
                 <div class="flex flex-col gap-1 items-start" id="WLB-container"></div>
             </div>
 
+            <!-- CL: Stepped layout -->
+            <div id="region-CL" class="seat-region hidden">
+                <div class="flex flex-col gap-1 items-start" id="CL-container"></div>
+            </div>
+
             <!-- CR: Stepped layout -->
             <div id="region-CR" class="seat-region hidden">
                 <div class="flex flex-col gap-1 items-start" id="CR-container"></div>
@@ -110,6 +122,10 @@
         <div class="flex items-center gap-1.5">
             <div class="w-3 h-3 sm:w-4 sm:h-4 bg-seat-booked rounded"></div>
             <span>Sudah Dipesan</span>
+        </div>
+        <div class="flex items-center gap-1.5">
+            <div class="w-3 h-3 sm:w-4 sm:h-4 bg-seat-available ring-2 ring-red-500 ring-inset rounded"></div>
+            <span>Belum Tersedia (Admin Bisa Pesan)</span>
         </div>
     </div>
 
@@ -303,6 +319,8 @@
         seat.className = 'w-8 h-8 text-xs font-medium rounded bg-seat-available text-white transition-colors select-none';
         seat.textContent = num;
         seat.dataset.seat = `${region}-${num}`;
+        seat.dataset.region = region;
+        seat.dataset.number = num;
         seat.onclick = () => toggleSeat(seat);
         return seat;
     }
@@ -317,6 +335,7 @@
     }
 
     let bookedSeats = [];
+    let availability = { regions: {}, seats: {} };
 
     function toggleSeat(seat) {
         if (seat.classList.contains('bg-seat-booked')) return;
@@ -583,9 +602,71 @@
         document.getElementById('region-title').textContent = `Region: ${region} (${regionConfig[region].name})`;
     }
 
+    function isSeatAvailable(region, seatNum) {
+        const regionAvailable = availability.regions[region] || false;
+        const seatAvailability = availability.seats[region] || {};
+        if (seatAvailability[seatNum] !== undefined) {
+            return seatAvailability[seatNum];
+        }
+        return regionAvailable;
+    }
+
+    function updateSeatAvailability() {
+        document.querySelectorAll('[data-seat]').forEach(seat => {
+            const region = seat.dataset.region;
+            const seatNum = seat.dataset.number;
+            
+            if (seat.classList.contains('bg-seat-booked')) return;
+            if (seat.classList.contains('bg-seat-selected')) return;
+            
+            const isAvailable = isSeatAvailable(region, seatNum);
+            
+            // Admin can still click unavailable seats, but show visual indicator
+            if (!isAvailable) {
+                seat.classList.add('ring-2', 'ring-red-500', 'ring-inset');
+            } else {
+                seat.classList.remove('ring-2', 'ring-red-500', 'ring-inset');
+            }
+        });
+        
+        updateRegionButtons();
+    }
+
+    function updateRegionButtons() {
+        Object.keys(regionConfig).forEach(region => {
+            const btn = document.getElementById(`btn-${region}`);
+            const isAvailable = availability.regions[region] || false;
+            
+            let indicator = btn.querySelector('.availability-indicator');
+            if (!indicator) {
+                indicator = document.createElement('span');
+                indicator.className = 'availability-indicator block text-[10px] font-normal';
+                btn.appendChild(indicator);
+            }
+            
+            if (!isAvailable) {
+                indicator.textContent = 'Belum Tersedia';
+                indicator.classList.add('text-red-300');
+            } else {
+                indicator.textContent = '';
+            }
+        });
+    }
+
+    async function loadAvailability() {
+        try {
+            const res = await fetch('/api/availability');
+            availability = await res.json();
+            updateSeatAvailability();
+        } catch (err) {
+            console.error('Failed to load availability:', err);
+        }
+    }
+
     document.addEventListener('DOMContentLoaded', async () => {
         initSeats();
         await loadBookedSeats();
+        await loadAvailability();
     });
 </script>
 {% endblock %}

@@ -144,6 +144,21 @@ class Seat(db.Model):
         return f'<Seat {self.region}-{self.seat_number}>'
 
 
+class SeatAvailability(db.Model):
+    """Controls which regions/seats are available for booking"""
+    id = db.Column(db.Integer, primary_key=True)
+    region = db.Column(db.String(10), nullable=False)
+    seat_number = db.Column(db.Integer, nullable=True)  # NULL = entire region
+    is_available = db.Column(db.Boolean, default=False)
+    
+    __table_args__ = (db.UniqueConstraint('region', 'seat_number', name='unique_availability'),)
+    
+    def __repr__(self):
+        if self.seat_number:
+            return f'<SeatAvailability {self.region}-{self.seat_number}: {self.is_available}>'
+        return f'<SeatAvailability {self.region}: {self.is_available}>'
+
+
 def expire_pending_tickets():
     """Auto-expire pending tickets older than PENDING_TIMEOUT_MINUTES"""
     try:
@@ -533,6 +548,124 @@ def get_recent_bookings():
         })
     
     return jsonify({'bookings': bookings})
+
+
+# ============ SEAT AVAILABILITY API ============
+
+@app.route('/admin/availability')
+@login_required
+def availability_page():
+    """Admin page to manage seat availability"""
+    return render_template('availability.html')
+
+
+@app.route('/api/availability')
+def get_availability():
+    """Get all availability settings"""
+    availabilities = SeatAvailability.query.all()
+    result = {
+        'regions': {},  # region -> is_available (for whole region)
+        'seats': {}     # region -> {seat_number -> is_available}
+    }
+    
+    for av in availabilities:
+        if av.seat_number is None:
+            # Region-level availability
+            result['regions'][av.region] = av.is_available
+        else:
+            # Seat-level availability
+            if av.region not in result['seats']:
+                result['seats'][av.region] = {}
+            result['seats'][av.region][str(av.seat_number)] = av.is_available
+    
+    return jsonify(result)
+
+
+@app.route('/api/availability/region', methods=['POST'])
+@api_login_required
+def set_region_availability():
+    """Set availability for entire region"""
+    data = request.get_json()
+    region = data.get('region')
+    is_available = data.get('is_available', False)
+    
+    if not region:
+        return jsonify({'error': 'Region required'}), 400
+    
+    try:
+        av = SeatAvailability.query.filter_by(region=region, seat_number=None).first()
+        if av:
+            av.is_available = is_available
+        else:
+            av = SeatAvailability(region=region, seat_number=None, is_available=is_available)
+            db.session.add(av)
+        
+        db.session.commit()
+        logger.info(f"AVAILABILITY: region={region}, available={is_available}")
+        return jsonify({'success': True})
+    except Exception as e:
+        db.session.rollback()
+        logger.error(f"Set region availability error: {str(e)}")
+        return jsonify({'error': 'Terjadi kesalahan'}), 500
+
+
+@app.route('/api/availability/seat', methods=['POST'])
+@api_login_required
+def set_seat_availability():
+    """Set availability for individual seat"""
+    data = request.get_json()
+    region = data.get('region')
+    seat_number = data.get('seat_number')
+    is_available = data.get('is_available', False)
+    
+    if not region or seat_number is None:
+        return jsonify({'error': 'Region and seat_number required'}), 400
+    
+    try:
+        av = SeatAvailability.query.filter_by(region=region, seat_number=seat_number).first()
+        if av:
+            av.is_available = is_available
+        else:
+            av = SeatAvailability(region=region, seat_number=seat_number, is_available=is_available)
+            db.session.add(av)
+        
+        db.session.commit()
+        logger.info(f"AVAILABILITY: seat={region}-{seat_number}, available={is_available}")
+        return jsonify({'success': True})
+    except Exception as e:
+        db.session.rollback()
+        logger.error(f"Set seat availability error: {str(e)}")
+        return jsonify({'error': 'Terjadi kesalahan'}), 500
+
+
+@app.route('/api/availability/bulk', methods=['POST'])
+@api_login_required
+def set_bulk_availability():
+    """Set availability for multiple seats at once"""
+    data = request.get_json()
+    region = data.get('region')
+    seats = data.get('seats', [])  # list of seat numbers
+    is_available = data.get('is_available', False)
+    
+    if not region:
+        return jsonify({'error': 'Region required'}), 400
+    
+    try:
+        for seat_number in seats:
+            av = SeatAvailability.query.filter_by(region=region, seat_number=seat_number).first()
+            if av:
+                av.is_available = is_available
+            else:
+                av = SeatAvailability(region=region, seat_number=seat_number, is_available=is_available)
+                db.session.add(av)
+        
+        db.session.commit()
+        logger.info(f"AVAILABILITY BULK: region={region}, seats={seats}, available={is_available}")
+        return jsonify({'success': True})
+    except Exception as e:
+        db.session.rollback()
+        logger.error(f"Set bulk availability error: {str(e)}")
+        return jsonify({'error': 'Terjadi kesalahan'}), 500
 
 
 if __name__ == '__main__':

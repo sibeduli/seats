@@ -1,0 +1,529 @@
+{% extends 'base.html' %}
+
+{% block title %}Kelola Ketersediaan Kursi - Admin{% endblock %}
+
+{% block content %}
+<div class="bg-white rounded-lg shadow-xl p-4 sm:p-6 md:p-10 max-w-6xl w-full">
+    <!-- Header -->
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6">
+        <div>
+            <h1 class="font-serif text-2xl sm:text-3xl text-gray-800 mb-1">Kelola Ketersediaan</h1>
+            <p class="text-gray-500 text-sm">Atur region dan kursi yang tersedia untuk pemesanan</p>
+        </div>
+        <a href="/admin" class="mt-3 sm:mt-0 inline-flex items-center gap-1 px-3 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm rounded-lg transition-colors">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
+            </svg>
+            Kembali ke Booking
+        </a>
+    </div>
+
+    <!-- Legend -->
+    <div class="flex flex-wrap gap-4 mb-6 p-3 bg-gray-50 rounded-lg text-sm">
+        <div class="flex items-center gap-2">
+            <div class="w-4 h-4 bg-green-500 rounded"></div>
+            <span>Tersedia</span>
+        </div>
+        <div class="flex items-center gap-2">
+            <div class="w-4 h-4 bg-red-500 rounded"></div>
+            <span>Belum Tersedia</span>
+        </div>
+        <div class="flex items-center gap-2">
+            <div class="w-4 h-4 bg-gray-400 rounded"></div>
+            <span>Sudah Dipesan</span>
+        </div>
+    </div>
+
+    <!-- Region Selector -->
+    <div class="flex justify-center mb-6">
+        <div class="inline-flex bg-gray-100 rounded-lg p-1 flex-wrap justify-center gap-0.5">
+            <button onclick="showRegion('WLA')" id="btn-WLA" class="region-btn px-3 py-2 text-sm font-medium rounded-md transition-all bg-blue-500 text-white">WLA</button>
+            <button onclick="showRegion('WLB')" id="btn-WLB" class="region-btn px-3 py-2 text-sm font-medium rounded-md transition-all text-gray-600 hover:text-gray-800">WLB</button>
+            <button onclick="showRegion('CL')" id="btn-CL" class="region-btn px-3 py-2 text-sm font-medium rounded-md transition-all text-gray-600 hover:text-gray-800">CL</button>
+            <button onclick="showRegion('CR')" id="btn-CR" class="region-btn px-3 py-2 text-sm font-medium rounded-md transition-all text-gray-600 hover:text-gray-800">CR</button>
+            <button onclick="showRegion('WRB')" id="btn-WRB" class="region-btn px-3 py-2 text-sm font-medium rounded-md transition-all text-gray-600 hover:text-gray-800">WRB</button>
+            <button onclick="showRegion('WRA')" id="btn-WRA" class="region-btn px-3 py-2 text-sm font-medium rounded-md transition-all text-gray-600 hover:text-gray-800">WRA</button>
+        </div>
+    </div>
+
+    <!-- Region Controls -->
+    <div class="mb-6 p-4 border border-gray-200 rounded-lg">
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+            <div>
+                <h2 id="region-title" class="text-lg font-medium text-gray-800">Region: WLA (Wing Left A)</h2>
+                <p id="region-status" class="text-sm text-gray-500">Status: <span class="font-medium text-red-600">Belum Tersedia</span></p>
+            </div>
+            <div class="flex gap-2 flex-wrap">
+                <button onclick="stageToggleRegion()" id="toggle-region-btn" class="px-4 py-2 bg-green-500 hover:bg-green-600 text-white text-sm font-medium rounded-lg transition-colors">
+                    Buka Region
+                </button>
+                <button onclick="stageToggleAllSeats(true)" class="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white text-sm font-medium rounded-lg transition-colors">
+                    Buka Semua Kursi
+                </button>
+                <button onclick="stageToggleAllSeats(false)" class="px-4 py-2 bg-red-500 hover:bg-red-600 text-white text-sm font-medium rounded-lg transition-colors">
+                    Tutup Semua Kursi
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Pending Changes Banner -->
+    <div id="pending-changes" class="hidden mb-6 p-4 bg-amber-50 border border-amber-300 rounded-lg">
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+            <div class="flex items-center gap-2">
+                <svg class="w-5 h-5 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+                </svg>
+                <span class="text-amber-800 font-medium">Ada <span id="pending-count">0</span> perubahan yang belum disimpan</span>
+            </div>
+            <div class="flex gap-2">
+                <button onclick="discardChanges()" class="px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-700 text-sm font-medium rounded-lg transition-colors">
+                    Batalkan
+                </button>
+                <button onclick="showConfirmModal()" class="px-4 py-2 bg-green-500 hover:bg-green-600 text-white text-sm font-medium rounded-lg transition-colors">
+                    Simpan Perubahan
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Seat Grid -->
+    <div class="overflow-x-auto">
+        <div id="seat-container" class="flex justify-center min-w-max">
+            <div id="region-WLA" class="seat-region">
+                <div class="flex flex-col gap-1 items-start" id="WLA-container"></div>
+            </div>
+            <div id="region-WLB" class="seat-region hidden">
+                <div class="flex flex-col gap-1 items-start" id="WLB-container"></div>
+            </div>
+            <div id="region-CL" class="seat-region hidden">
+                <div class="flex flex-col gap-1 items-start" id="CL-container"></div>
+            </div>
+            <div id="region-CR" class="seat-region hidden">
+                <div class="flex flex-col gap-1 items-start" id="CR-container"></div>
+            </div>
+            <div id="region-WRB" class="seat-region hidden">
+                <div class="flex flex-col gap-1 items-start" id="WRB-container"></div>
+            </div>
+            <div id="region-WRA" class="seat-region hidden">
+                <div class="flex flex-col gap-1 items-start" id="WRA-container"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Instructions -->
+    <div class="mt-6 p-4 bg-amber-50 border border-amber-200 rounded-lg">
+        <div class="flex gap-2">
+            <svg class="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+            </svg>
+            <div class="text-sm text-amber-800">
+                <p class="font-medium mb-1">Cara Penggunaan</p>
+                <ul class="list-disc list-inside space-y-1">
+                    <li><strong>Klik kursi</strong> untuk toggle ketersediaan kursi individual</li>
+                    <li><strong>Buka/Tutup Region</strong> untuk mengatur ketersediaan seluruh region</li>
+                    <li><strong>Buka/Tutup Semua Kursi</strong> untuk mengatur semua kursi dalam region sekaligus</li>
+                    <li>Kursi yang sudah dipesan (abu-abu) tidak bisa diubah</li>
+                    <li><strong>Perubahan tidak langsung tersimpan</strong> - klik "Simpan Perubahan" untuk menyimpan</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Confirmation Modal -->
+<div id="confirm-modal" class="fixed inset-0 bg-black/50 flex items-center justify-center hidden z-50">
+    <div class="bg-white rounded-lg p-6 max-w-lg w-full mx-4">
+        <h2 class="font-serif text-xl text-gray-800 mb-4">Konfirmasi Perubahan</h2>
+        
+        <div class="bg-gray-50 rounded-lg p-4 mb-4 max-h-64 overflow-y-auto">
+            <p class="text-sm text-gray-600 mb-2">Perubahan yang akan disimpan:</p>
+            <ul id="changes-list" class="text-sm space-y-1"></ul>
+        </div>
+        
+        <div class="flex gap-3">
+            <button onclick="hideConfirmModal()" class="flex-1 border border-gray-300 text-gray-700 font-medium py-2 rounded-lg hover:bg-gray-50 transition-colors">
+                Batal
+            </button>
+            <button onclick="saveChanges()" id="save-btn" class="flex-1 bg-green-500 hover:bg-green-600 text-white font-medium py-2 rounded-lg transition-colors">
+                Simpan
+            </button>
+        </div>
+    </div>
+</div>
+
+<script>
+    const regionConfig = {
+        'WLA': { name: 'Wing Left A', type: 'stepped', seatsPerRow: [10, 10, 10, 10, 10, 10, 10, 10], leanDirection: 'left' },
+        'WLB': { name: 'Wing Left B', type: 'stepped', seatsPerRow: [3, 5, 7, 8, 10, 12, 13, 15, 15], leanDirection: 'left' },
+        'CL': { name: 'Center Left', type: 'stepped', seatsPerRow: [15, 15, 15, 15, 15, 16, 16, 15, 13, 11, 11, 9], leanDirection: 'right' },
+        'CR': { name: 'Center Right', type: 'stepped', seatsPerRow: [15, 15, 15, 15, 15, 16, 16, 15, 13, 11, 11, 9], leanDirection: 'left' },
+        'WRB': { name: 'Wing Right B', type: 'stepped', seatsPerRow: [3, 5, 7, 8, 10, 12, 13, 15, 15], leanDirection: 'right' },
+        'WRA': { name: 'Wing Right A', type: 'stepped', seatsPerRow: [10, 10, 10, 10, 10, 10, 10, 10], leanDirection: 'right' }
+    };
+
+    let currentRegion = 'WLA';
+    let availability = { regions: {}, seats: {} };
+    let bookedSeats = [];
+    
+    // Staged changes (not yet saved)
+    let pendingChanges = {
+        regions: {},  // region -> newValue
+        seats: {}     // region -> { seatNum -> newValue }
+    };
+
+    function createSeat(region, number) {
+        const seat = document.createElement('div');
+        seat.className = 'w-8 h-8 text-white text-xs flex items-center justify-center rounded cursor-pointer transition-colors select-none';
+        seat.textContent = number;
+        seat.dataset.seat = `${region}-${number}`;
+        seat.dataset.region = region;
+        seat.dataset.number = number;
+        seat.onclick = () => toggleSeat(seat);
+        return seat;
+    }
+
+    function initSteppedRegion(region) {
+        const container = document.getElementById(`${region}-container`);
+        if (!container) return;
+
+        const config = regionConfig[region];
+        const leanDirection = config.leanDirection || 'left';
+        let seatNum = 1;
+
+        container.className = 'flex flex-col gap-1';
+        if (leanDirection === 'left') {
+            container.classList.add('items-start');
+        } else if (leanDirection === 'right') {
+            container.classList.add('items-end');
+        } else {
+            container.classList.add('items-center');
+        }
+
+        config.seatsPerRow.forEach((seatsInRow, rowIndex) => {
+            const rowDiv = document.createElement('div');
+            rowDiv.className = 'flex gap-1 flex-row-reverse';
+
+            for (let i = 0; i < seatsInRow; i++) {
+                rowDiv.appendChild(createSeat(region, seatNum));
+                seatNum++;
+            }
+            container.appendChild(rowDiv);
+        });
+    }
+
+    function showRegion(region) {
+        currentRegion = region;
+        
+        document.querySelectorAll('.seat-region').forEach(r => r.classList.add('hidden'));
+        document.querySelectorAll('.region-btn').forEach(btn => {
+            btn.classList.remove('bg-blue-500', 'text-white');
+            btn.classList.add('text-gray-600');
+        });
+
+        document.getElementById(`region-${region}`).classList.remove('hidden');
+        document.getElementById(`btn-${region}`).classList.add('bg-blue-500', 'text-white');
+        document.getElementById(`btn-${region}`).classList.remove('text-gray-600');
+
+        const config = regionConfig[region];
+        document.getElementById('region-title').textContent = `Region: ${region} (${config.name})`;
+        
+        updateRegionStatus();
+        updateSeatColors();
+    }
+
+    function updateRegionStatus() {
+        // Check pending first, then saved
+        const isAvailable = pendingChanges.regions[currentRegion] !== undefined 
+            ? pendingChanges.regions[currentRegion] 
+            : (availability.regions[currentRegion] || false);
+        const hasPending = pendingChanges.regions[currentRegion] !== undefined;
+        
+        const statusEl = document.getElementById('region-status');
+        const btnEl = document.getElementById('toggle-region-btn');
+        
+        if (isAvailable) {
+            statusEl.innerHTML = 'Status: <span class="font-medium text-green-600">Tersedia</span>' + (hasPending ? ' <span class="text-yellow-600">(belum disimpan)</span>' : '');
+            btnEl.textContent = 'Tutup Region';
+            btnEl.className = 'px-4 py-2 bg-red-500 hover:bg-red-600 text-white text-sm font-medium rounded-lg transition-colors';
+        } else {
+            statusEl.innerHTML = 'Status: <span class="font-medium text-red-600">Belum Tersedia</span>' + (hasPending ? ' <span class="text-yellow-600">(belum disimpan)</span>' : '');
+            btnEl.textContent = 'Buka Region';
+            btnEl.className = 'px-4 py-2 bg-green-500 hover:bg-green-600 text-white text-sm font-medium rounded-lg transition-colors';
+        }
+    }
+
+    function getEffectiveAvailability(region, seatNum) {
+        // Check pending changes first
+        if (pendingChanges.seats[region] && pendingChanges.seats[region][seatNum] !== undefined) {
+            return pendingChanges.seats[region][seatNum];
+        }
+        // Then check saved seat-level
+        if (availability.seats[region] && availability.seats[region][seatNum] !== undefined) {
+            return availability.seats[region][seatNum];
+        }
+        // Check pending region change
+        if (pendingChanges.regions[region] !== undefined) {
+            return pendingChanges.regions[region];
+        }
+        // Fall back to saved region-level
+        return availability.regions[region] || false;
+    }
+
+    function updateSeatColors() {
+        document.querySelectorAll(`#region-${currentRegion} [data-seat]`).forEach(seat => {
+            const seatId = seat.dataset.seat;
+            const seatNum = seat.dataset.number;
+            const isBooked = bookedSeats.includes(seatId);
+            
+            seat.classList.remove('bg-green-500', 'bg-red-500', 'bg-gray-400', 'bg-yellow-400', 'cursor-pointer', 'cursor-not-allowed', 'ring-2', 'ring-yellow-500');
+            
+            if (isBooked) {
+                seat.classList.add('bg-gray-400', 'cursor-not-allowed');
+            } else {
+                const isAvailable = getEffectiveAvailability(currentRegion, seatNum);
+                const hasPendingChange = (pendingChanges.seats[currentRegion] && pendingChanges.seats[currentRegion][seatNum] !== undefined);
+                
+                if (isAvailable) {
+                    seat.classList.add('bg-green-500', 'cursor-pointer');
+                } else {
+                    seat.classList.add('bg-red-500', 'cursor-pointer');
+                }
+                
+                // Show pending indicator
+                if (hasPendingChange) {
+                    seat.classList.add('ring-2', 'ring-yellow-500');
+                }
+            }
+        });
+    }
+
+    function stageSeatToggle(seat) {
+        const seatId = seat.dataset.seat;
+        if (bookedSeats.includes(seatId)) {
+            alert('Kursi ini sudah dipesan dan tidak bisa diubah');
+            return;
+        }
+        
+        const region = seat.dataset.region;
+        const seatNum = parseInt(seat.dataset.number);
+        
+        const currentlyAvailable = getEffectiveAvailability(region, seatNum);
+        const newAvailable = !currentlyAvailable;
+        
+        if (!pendingChanges.seats[region]) pendingChanges.seats[region] = {};
+        pendingChanges.seats[region][seatNum] = newAvailable;
+        
+        updateSeatColors();
+        updatePendingBanner();
+    }
+
+    function stageToggleRegion() {
+        const currentlyAvailable = pendingChanges.regions[currentRegion] !== undefined 
+            ? pendingChanges.regions[currentRegion] 
+            : (availability.regions[currentRegion] || false);
+        
+        pendingChanges.regions[currentRegion] = !currentlyAvailable;
+        
+        updateRegionStatus();
+        updateSeatColors();
+        updatePendingBanner();
+    }
+
+    function stageToggleAllSeats(makeAvailable) {
+        const config = regionConfig[currentRegion];
+        const totalSeats = config.seatsPerRow.reduce((a, b) => a + b, 0);
+        
+        if (!pendingChanges.seats[currentRegion]) pendingChanges.seats[currentRegion] = {};
+        
+        for (let i = 1; i <= totalSeats; i++) {
+            const seatId = `${currentRegion}-${i}`;
+            if (!bookedSeats.includes(seatId)) {
+                pendingChanges.seats[currentRegion][i] = makeAvailable;
+            }
+        }
+        
+        updateSeatColors();
+        updatePendingBanner();
+    }
+
+    function countPendingChanges() {
+        let count = Object.keys(pendingChanges.regions).length;
+        for (const region in pendingChanges.seats) {
+            count += Object.keys(pendingChanges.seats[region]).length;
+        }
+        return count;
+    }
+
+    function updatePendingBanner() {
+        const count = countPendingChanges();
+        const banner = document.getElementById('pending-changes');
+        const countEl = document.getElementById('pending-count');
+        
+        if (count > 0) {
+            banner.classList.remove('hidden');
+            countEl.textContent = count;
+        } else {
+            banner.classList.add('hidden');
+        }
+    }
+
+    function discardChanges() {
+        pendingChanges = { regions: {}, seats: {} };
+        updateRegionStatus();
+        updateSeatColors();
+        updatePendingBanner();
+    }
+
+    function showConfirmModal() {
+        const list = document.getElementById('changes-list');
+        list.innerHTML = '';
+        
+        // List region changes
+        for (const region in pendingChanges.regions) {
+            const newVal = pendingChanges.regions[region];
+            const li = document.createElement('li');
+            li.className = newVal ? 'text-green-700' : 'text-red-700';
+            li.innerHTML = `<strong>Region ${region}</strong>: ${newVal ? 'Dibuka' : 'Ditutup'}`;
+            list.appendChild(li);
+        }
+        
+        // List seat changes (grouped by region)
+        for (const region in pendingChanges.seats) {
+            const seats = pendingChanges.seats[region];
+            const openSeats = [];
+            const closeSeats = [];
+            
+            for (const seatNum in seats) {
+                if (seats[seatNum]) {
+                    openSeats.push(seatNum);
+                } else {
+                    closeSeats.push(seatNum);
+                }
+            }
+            
+            if (openSeats.length > 0) {
+                const li = document.createElement('li');
+                li.className = 'text-green-700';
+                li.innerHTML = `<strong>${region}</strong>: Buka kursi ${openSeats.join(', ')}`;
+                list.appendChild(li);
+            }
+            if (closeSeats.length > 0) {
+                const li = document.createElement('li');
+                li.className = 'text-red-700';
+                li.innerHTML = `<strong>${region}</strong>: Tutup kursi ${closeSeats.join(', ')}`;
+                list.appendChild(li);
+            }
+        }
+        
+        document.getElementById('confirm-modal').classList.remove('hidden');
+    }
+
+    function hideConfirmModal() {
+        document.getElementById('confirm-modal').classList.add('hidden');
+    }
+
+    async function saveChanges() {
+        const saveBtn = document.getElementById('save-btn');
+        saveBtn.disabled = true;
+        saveBtn.textContent = 'Menyimpan...';
+        
+        try {
+            // Save region changes
+            for (const region in pendingChanges.regions) {
+                await fetch('/api/availability/region', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ region, is_available: pendingChanges.regions[region] })
+                });
+                availability.regions[region] = pendingChanges.regions[region];
+            }
+            
+            // Save seat changes (bulk per region)
+            for (const region in pendingChanges.seats) {
+                const seats = pendingChanges.seats[region];
+                const openSeats = [];
+                const closeSeats = [];
+                
+                for (const seatNum in seats) {
+                    if (seats[seatNum]) {
+                        openSeats.push(parseInt(seatNum));
+                    } else {
+                        closeSeats.push(parseInt(seatNum));
+                    }
+                }
+                
+                if (openSeats.length > 0) {
+                    await fetch('/api/availability/bulk', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ region, seats: openSeats, is_available: true })
+                    });
+                }
+                if (closeSeats.length > 0) {
+                    await fetch('/api/availability/bulk', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ region, seats: closeSeats, is_available: false })
+                    });
+                }
+                
+                // Update local state
+                if (!availability.seats[region]) availability.seats[region] = {};
+                for (const seatNum in seats) {
+                    availability.seats[region][seatNum] = seats[seatNum];
+                }
+            }
+            
+            // Clear pending changes
+            pendingChanges = { regions: {}, seats: {} };
+            
+            hideConfirmModal();
+            updateRegionStatus();
+            updateSeatColors();
+            updatePendingBanner();
+            
+            alert('Perubahan berhasil disimpan!');
+        } catch (e) {
+            alert('Gagal menyimpan perubahan');
+        }
+        
+        saveBtn.disabled = false;
+        saveBtn.textContent = 'Simpan';
+    }
+
+    // Legacy function name for seat click
+    function toggleSeat(seat) {
+        stageSeatToggle(seat);
+    }
+
+    async function loadData() {
+        try {
+            // Load booked seats
+            const seatsRes = await fetch('/api/seats');
+            const seatsData = await seatsRes.json();
+            bookedSeats = seatsData.filter(s => s.status === 'active' || s.status === 'pending')
+                                   .map(s => `${s.region}-${s.number}`);
+            
+            // Load availability
+            const availRes = await fetch('/api/availability');
+            availability = await availRes.json();
+            
+            updateRegionStatus();
+            updateSeatColors();
+        } catch (e) {
+            console.error('Failed to load data:', e);
+        }
+    }
+
+    // Initialize
+    document.addEventListener('DOMContentLoaded', async () => {
+        Object.keys(regionConfig).forEach(region => {
+            initSteppedRegion(region);
+        });
+        
+        await loadData();
+        showRegion('WLA');
+    });
+</script>
+{% endblock %}

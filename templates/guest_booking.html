@@ -151,6 +151,10 @@
                     <div class="w-3 h-3 sm:w-4 sm:h-4 bg-seat-booked rounded"></div>
                     <span>Sudah Dipesan</span>
                 </div>
+                <div class="flex items-center gap-1.5">
+                    <div class="w-3 h-3 sm:w-4 sm:h-4 bg-red-500 rounded"></div>
+                    <span>Belum Tersedia</span>
+                </div>
             </div>
 
             <!-- Booking Form -->
@@ -313,12 +317,15 @@
     };
 
     let bookedSeats = [];
+    let availability = { regions: {}, seats: {} };
 
     function createSeat(region, number) {
         const seat = document.createElement('div');
         seat.className = 'w-8 h-8 bg-seat-available text-white text-xs flex items-center justify-center rounded cursor-pointer transition-colors select-none';
         seat.textContent = number;
         seat.dataset.seat = `${region}-${number}`;
+        seat.dataset.region = region;
+        seat.dataset.number = number;
         seat.onclick = () => toggleSeat(seat);
         return seat;
     }
@@ -374,6 +381,10 @@
 
     function toggleSeat(seat) {
         if (seat.classList.contains('bg-seat-booked')) return;
+        if (seat.classList.contains('bg-red-500')) {
+            // Unavailable seat
+            return;
+        }
         if (seat.classList.contains('bg-seat-selected')) {
             seat.classList.remove('bg-seat-selected');
             seat.classList.add('bg-seat-available');
@@ -382,6 +393,66 @@
             seat.classList.add('bg-seat-selected');
         }
         updateBookingSection();
+    }
+
+    function isSeatAvailable(region, seatNum) {
+        const regionAvailable = availability.regions[region] || false;
+        const seatAvailability = availability.seats[region] || {};
+        
+        // Check seat-level first, then fall back to region-level
+        if (seatAvailability[seatNum] !== undefined) {
+            return seatAvailability[seatNum];
+        }
+        return regionAvailable;
+    }
+
+    function updateSeatAvailability() {
+        document.querySelectorAll('[data-seat]').forEach(seat => {
+            const region = seat.dataset.region;
+            const seatNum = seat.dataset.number;
+            const seatId = seat.dataset.seat;
+            
+            // Skip booked seats
+            if (seat.classList.contains('bg-seat-booked')) return;
+            // Skip selected seats
+            if (seat.classList.contains('bg-seat-selected')) return;
+            
+            const isAvailable = isSeatAvailable(region, seatNum);
+            
+            seat.classList.remove('bg-seat-available', 'bg-red-500', 'cursor-pointer', 'cursor-not-allowed');
+            
+            if (isAvailable) {
+                seat.classList.add('bg-seat-available', 'cursor-pointer');
+            } else {
+                seat.classList.add('bg-red-500', 'cursor-not-allowed');
+            }
+        });
+        
+        // Update region buttons with availability status
+        updateRegionButtons();
+    }
+
+    function updateRegionButtons() {
+        Object.keys(regionConfig).forEach(region => {
+            const btn = document.getElementById(`btn-${region}`);
+            const isAvailable = availability.regions[region] || false;
+            
+            // Find or create the status indicator
+            let indicator = btn.querySelector('.availability-indicator');
+            if (!indicator) {
+                indicator = document.createElement('span');
+                indicator.className = 'availability-indicator block text-[10px] font-normal';
+                btn.appendChild(indicator);
+            }
+            
+            if (!isAvailable) {
+                indicator.textContent = 'Belum Tersedia';
+                indicator.classList.add('text-red-300');
+                indicator.classList.remove('text-green-300');
+            } else {
+                indicator.textContent = '';
+            }
+        });
     }
 
     function updateBookingSection() {
@@ -543,6 +614,16 @@
         }
     }
 
+    async function loadAvailability() {
+        try {
+            const res = await fetch('/api/availability');
+            availability = await res.json();
+            updateSeatAvailability();
+        } catch (err) {
+            console.error('Failed to load availability:', err);
+        }
+    }
+
     function markBookedSeats() {
         bookedSeats.forEach(seat => {
             const el = document.querySelector(`[data-seat="${seat.region}-${seat.number}"]`);
@@ -556,6 +637,7 @@
     document.addEventListener('DOMContentLoaded', async () => {
         initSeats();
         await loadBookedSeats();
+        await loadAvailability();
     });
 </script>
 </body>
