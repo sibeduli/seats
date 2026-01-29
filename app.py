@@ -332,6 +332,8 @@ def qr_page():
 @app.route('/book')
 def guest_booking():
     """Public guest booking page"""
+    if is_maintenance_mode():
+        return redirect('/maintenance')
     if not is_sales_open():
         return redirect('/closed')
     return render_template('guest_booking.html')
@@ -393,9 +395,12 @@ def book_seats():
     """Book seats and create transaction"""
     is_admin = session.get('logged_in', False)
     
-    # Block guest bookings when sales are closed
-    if not is_admin and not is_sales_open():
-        return jsonify({'error': 'Pembelian tiket sedang ditutup'}), 403
+    # Block guest bookings when maintenance mode is on or sales are closed
+    if not is_admin:
+        if is_maintenance_mode():
+            return jsonify({'error': 'Sedang dalam mode maintenance'}), 503
+        if not is_sales_open():
+            return jsonify({'error': 'Pembelian tiket sedang ditutup'}), 403
     
     # Rate limiting (10 requests per minute per IP)
     # Bypass for benchmarking (requires BENCHMARK_MODE env var)
@@ -651,11 +656,16 @@ def export_csv():
     )
 
 
-# ============ SALES TOGGLE ============
+# ============ SALES & MAINTENANCE TOGGLE ============
 
 def is_sales_open():
     """Check if ticket sales are open"""
     return AppSetting.get('sales_open', 'true') == 'true'
+
+
+def is_maintenance_mode():
+    """Check if maintenance mode is enabled"""
+    return AppSetting.get('maintenance_mode', 'false') == 'true'
 
 
 @app.route('/closed')
@@ -664,10 +674,16 @@ def sales_closed_page():
     return render_template('closed.html')
 
 
+@app.route('/maintenance')
+def maintenance_page():
+    """Page shown when maintenance mode is on"""
+    return render_template('maintenance.html')
+
+
 @app.route('/api/sales-status')
 def get_sales_status():
     """Get current sales status"""
-    return jsonify({'is_open': is_sales_open()})
+    return jsonify({'is_open': is_sales_open(), 'maintenance': is_maintenance_mode()})
 
 
 @app.route('/api/sales-toggle', methods=['POST'])
@@ -682,6 +698,18 @@ def toggle_sales():
     return jsonify({'success': True, 'is_open': is_open})
 
 
+@app.route('/api/maintenance-toggle', methods=['POST'])
+@api_login_required
+def toggle_maintenance():
+    """Toggle maintenance mode on/off"""
+    data = request.get_json()
+    is_on = data.get('is_on', False)
+    AppSetting.set('maintenance_mode', 'true' if is_on else 'false')
+    panitia = session.get('panitia_name', 'Unknown')
+    logger.info(f"MAINTENANCE TOGGLE: is_on={is_on}, by_panitia={panitia}, ip={request.remote_addr}")
+    return jsonify({'success': True, 'is_on': is_on})
+
+
 # ============ SEAT AVAILABILITY API ============
 
 @app.route('/admin/availability')
@@ -689,7 +717,8 @@ def toggle_sales():
 def availability_page():
     """Admin page to manage seat availability"""
     sales_open = is_sales_open()
-    return render_template('availability.html', sales_open=sales_open)
+    maintenance_on = is_maintenance_mode()
+    return render_template('availability.html', sales_open=sales_open, maintenance_on=maintenance_on)
 
 
 @app.route('/api/availability')

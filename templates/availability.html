@@ -19,7 +19,7 @@
     </div>
 
     <!-- Sales Toggle -->
-    <div class="mb-6 p-4 border-2 rounded-lg {% if sales_open %}border-green-500 bg-green-50{% else %}border-red-500 bg-red-50{% endif %}">
+    <div id="sales-toggle-container" class="mb-4 p-4 border-2 rounded-lg {% if sales_open %}border-green-500 bg-green-50{% else %}border-red-500 bg-red-50{% endif %}">
         <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
             <div>
                 <h2 class="text-lg font-medium text-gray-800">Status Penjualan Tiket</h2>
@@ -30,6 +30,22 @@
             <button onclick="toggleSales()" id="sales-toggle-btn" 
                 class="px-6 py-3 text-white text-sm font-medium rounded-lg transition-colors {% if sales_open %}bg-red-500 hover:bg-red-600{% else %}bg-green-500 hover:bg-green-600{% endif %}">
                 {% if sales_open %}Tutup Penjualan{% else %}Buka Penjualan{% endif %}
+            </button>
+        </div>
+    </div>
+
+    <!-- Maintenance Toggle -->
+    <div id="maintenance-toggle-container" class="mb-6 p-4 border-2 rounded-lg {% if maintenance_on %}border-orange-500 bg-orange-50{% else %}border-gray-300 bg-gray-50{% endif %}">
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+            <div>
+                <h2 class="text-lg font-medium text-gray-800">Mode Maintenance</h2>
+                <p id="maintenance-status-text" class="text-sm {% if maintenance_on %}text-orange-600{% else %}text-gray-600{% endif %}">
+                    {% if maintenance_on %}Maintenance AKTIF - Tamu diarahkan ke halaman maintenance{% else %}Maintenance NONAKTIF - Sistem berjalan normal{% endif %}
+                </p>
+            </div>
+            <button onclick="toggleMaintenance()" id="maintenance-toggle-btn" 
+                class="px-6 py-3 text-white text-sm font-medium rounded-lg transition-colors {% if maintenance_on %}bg-gray-500 hover:bg-gray-600{% else %}bg-orange-500 hover:bg-orange-600{% endif %}">
+                {% if maintenance_on %}Matikan Maintenance{% else %}Aktifkan Maintenance{% endif %}
             </button>
         </div>
     </div>
@@ -179,6 +195,23 @@
                 Batal
             </button>
             <button onclick="confirmSalesToggle()" id="sales-confirm-btn" class="flex-1 text-white font-medium py-2 rounded-lg transition-colors">
+                Konfirmasi
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Maintenance Toggle Confirmation Modal -->
+<div id="maintenance-modal" class="fixed inset-0 bg-black/50 flex items-center justify-center hidden z-50">
+    <div class="bg-white rounded-lg p-6 max-w-md w-full mx-4">
+        <h2 id="maintenance-modal-title" class="text-xl text-gray-800 mb-4">Konfirmasi</h2>
+        <p id="maintenance-modal-message" class="text-gray-600 mb-6"></p>
+        
+        <div class="flex gap-3">
+            <button onclick="hideMaintenanceModal()" class="flex-1 border border-gray-300 text-gray-700 font-medium py-2 rounded-lg hover:bg-gray-50 transition-colors">
+                Batal
+            </button>
+            <button onclick="confirmMaintenanceToggle()" id="maintenance-confirm-btn" class="flex-1 text-white font-medium py-2 rounded-lg transition-colors">
                 Konfirmasi
             </button>
         </div>
@@ -586,22 +619,97 @@
     }
     
     function updateSalesUI() {
-        const container = document.getElementById('sales-toggle-btn').parentElement.parentElement;
+        const container = document.getElementById('sales-toggle-container');
         const statusText = document.getElementById('sales-status-text');
         const btn = document.getElementById('sales-toggle-btn');
         
         if (salesOpen) {
-            container.className = 'mb-6 p-4 border-2 rounded-lg border-green-500 bg-green-50';
+            container.className = 'mb-4 p-4 border-2 rounded-lg border-green-500 bg-green-50';
             statusText.className = 'text-sm text-green-600';
             statusText.textContent = 'Penjualan DIBUKA - Tamu dapat membeli tiket';
             btn.className = 'px-6 py-3 text-white text-sm font-medium rounded-lg transition-colors bg-red-500 hover:bg-red-600';
             btn.textContent = 'Tutup Penjualan';
         } else {
-            container.className = 'mb-6 p-4 border-2 rounded-lg border-red-500 bg-red-50';
+            container.className = 'mb-4 p-4 border-2 rounded-lg border-red-500 bg-red-50';
             statusText.className = 'text-sm text-red-600';
             statusText.textContent = 'Penjualan DITUTUP - Tamu tidak dapat membeli tiket';
             btn.className = 'px-6 py-3 text-white text-sm font-medium rounded-lg transition-colors bg-green-500 hover:bg-green-600';
             btn.textContent = 'Buka Penjualan';
+        }
+    }
+
+    // Maintenance toggle
+    let maintenanceOn = {{ 'true' if maintenance_on else 'false' }};
+    
+    function toggleMaintenance() {
+        const modal = document.getElementById('maintenance-modal');
+        const title = document.getElementById('maintenance-modal-title');
+        const message = document.getElementById('maintenance-modal-message');
+        const confirmBtn = document.getElementById('maintenance-confirm-btn');
+        
+        if (maintenanceOn) {
+            title.textContent = 'Matikan Mode Maintenance?';
+            message.textContent = 'Sistem akan kembali normal dan tamu dapat mengakses halaman pembelian tiket. Apakah Anda yakin?';
+            confirmBtn.className = 'flex-1 bg-green-500 hover:bg-green-600 text-white font-medium py-2 rounded-lg transition-colors';
+        } else {
+            title.textContent = 'Aktifkan Mode Maintenance?';
+            message.textContent = 'Tamu akan diarahkan ke halaman maintenance dan tidak dapat membeli tiket. Gunakan ini jika ada kendala teknis. Apakah Anda yakin?';
+            confirmBtn.className = 'flex-1 bg-orange-500 hover:bg-orange-600 text-white font-medium py-2 rounded-lg transition-colors';
+        }
+        
+        modal.classList.remove('hidden');
+    }
+    
+    function hideMaintenanceModal() {
+        document.getElementById('maintenance-modal').classList.add('hidden');
+    }
+    
+    async function confirmMaintenanceToggle() {
+        const newState = !maintenanceOn;
+        const btn = document.getElementById('maintenance-confirm-btn');
+        btn.disabled = true;
+        btn.textContent = 'Menyimpan...';
+        
+        try {
+            const res = await fetch('/api/maintenance-toggle', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ is_on: newState })
+            });
+            const data = await res.json();
+            
+            if (data.success) {
+                maintenanceOn = newState;
+                updateMaintenanceUI();
+                hideMaintenanceModal();
+            } else {
+                alert('Gagal mengubah status maintenance');
+            }
+        } catch (e) {
+            alert('Gagal mengubah status maintenance');
+        }
+        
+        btn.disabled = false;
+        btn.textContent = 'Konfirmasi';
+    }
+    
+    function updateMaintenanceUI() {
+        const container = document.getElementById('maintenance-toggle-container');
+        const statusText = document.getElementById('maintenance-status-text');
+        const btn = document.getElementById('maintenance-toggle-btn');
+        
+        if (maintenanceOn) {
+            container.className = 'mb-6 p-4 border-2 rounded-lg border-orange-500 bg-orange-50';
+            statusText.className = 'text-sm text-orange-600';
+            statusText.textContent = 'Maintenance AKTIF - Tamu diarahkan ke halaman maintenance';
+            btn.className = 'px-6 py-3 text-white text-sm font-medium rounded-lg transition-colors bg-gray-500 hover:bg-gray-600';
+            btn.textContent = 'Matikan Maintenance';
+        } else {
+            container.className = 'mb-6 p-4 border-2 rounded-lg border-gray-300 bg-gray-50';
+            statusText.className = 'text-sm text-gray-600';
+            statusText.textContent = 'Maintenance NONAKTIF - Sistem berjalan normal';
+            btn.className = 'px-6 py-3 text-white text-sm font-medium rounded-lg transition-colors bg-orange-500 hover:bg-orange-600';
+            btn.textContent = 'Aktifkan Maintenance';
         }
     }
 

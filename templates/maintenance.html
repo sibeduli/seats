@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Maintenance - YARSI</title>
+    <link rel="icon" type="image/png" href="/static/assets/favicon.png">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        'serif': ['Playfair Display', 'serif'],
+                        'sans': ['Inter', 'sans-serif'],
+                    },
+                    colors: {
+                        'dark-bg': '#21393b',
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-dark-bg min-h-screen font-sans flex items-center justify-center p-4">
+    <div class="text-center max-w-lg">
+        <!-- Icon -->
+        <div class="mb-6">
+            <svg class="w-24 h-24 mx-auto text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+            </svg>
+        </div>
+        
+        <!-- Message -->
+        <h1 class="font-serif text-2xl md:text-3xl text-white mb-4">Sedang Dalam Perbaikan</h1>
+        <p class="text-gray-300 text-lg mb-6">Terjadi kendala pada pembelian tiket.<br>Silahkan hubungi admin yang tertera di bawah ini.</p>
+        
+        <!-- Contact Person Cards -->
+        <div class="grid grid-cols-2 gap-3 mb-8">
+            <!-- Admin Adifa -->
+            <div class="bg-white/10 rounded-lg p-3 text-left">
+                <p class="text-white text-sm font-medium">Admin Adifa</p>
+                <p class="text-amber-300 text-sm mb-2">0813-5381-6784</p>
+                <div class="flex gap-1">
+                    <a href="https://wa.me/6281353816784" target="_blank" class="inline-flex items-center gap-1 bg-green-600 hover:bg-green-700 text-white px-2 py-1 rounded text-xs transition-colors">WA</a>
+                    <button onclick="copyPhone('081353816784')" class="inline-flex items-center gap-1 bg-gray-600 hover:bg-gray-500 text-white px-2 py-1 rounded text-xs transition-colors">Copy</button>
+                </div>
+            </div>
+            <!-- Admin Hanni -->
+            <div class="bg-white/10 rounded-lg p-3 text-left">
+                <p class="text-white text-sm font-medium">Admin Hanni</p>
+                <p class="text-amber-300 text-sm mb-2">0813-1159-1770</p>
+                <div class="flex gap-1">
+                    <a href="https://wa.me/6281311591770" target="_blank" class="inline-flex items-center gap-1 bg-green-600 hover:bg-green-700 text-white px-2 py-1 rounded text-xs transition-colors">WA</a>
+                    <button onclick="copyPhone('081311591770')" class="inline-flex items-center gap-1 bg-gray-600 hover:bg-gray-500 text-white px-2 py-1 rounded text-xs transition-colors">Copy</button>
+                </div>
+            </div>
+            <!-- Admin Novia -->
+            <div class="bg-white/10 rounded-lg p-3 text-left">
+                <p class="text-white text-sm font-medium">Admin Novia</p>
+                <p class="text-amber-300 text-sm mb-2">0852-1184-2750</p>
+                <div class="flex gap-1">
+                    <a href="https://wa.me/6285211842750" target="_blank" class="inline-flex items-center gap-1 bg-green-600 hover:bg-green-700 text-white px-2 py-1 rounded text-xs transition-colors">WA</a>
+                    <button onclick="copyPhone('085211842750')" class="inline-flex items-center gap-1 bg-gray-600 hover:bg-gray-500 text-white px-2 py-1 rounded text-xs transition-colors">Copy</button>
+                </div>
+            </div>
+            <!-- Admin Aulyana -->
+            <div class="bg-white/10 rounded-lg p-3 text-left">
+                <p class="text-white text-sm font-medium">Admin Aulyana</p>
+                <p class="text-amber-300 text-sm mb-2">0877-7000-9722</p>
+                <div class="flex gap-1">
+                    <a href="https://wa.me/6287770009722" target="_blank" class="inline-flex items-center gap-1 bg-green-600 hover:bg-green-700 text-white px-2 py-1 rounded text-xs transition-colors">WA</a>
+                    <button onclick="copyPhone('087770009722')" class="inline-flex items-center gap-1 bg-gray-600 hover:bg-gray-500 text-white px-2 py-1 rounded text-xs transition-colors">Copy</button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Back to home -->
+        <a href="/" class="inline-flex items-center gap-2 bg-white/10 hover:bg-white/20 text-white px-6 py-3 rounded-lg transition-colors">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
+            </svg>
+            Kembali ke Beranda
+        </a>
+    </div>
+    
+    <!-- Toast -->
+    <div id="toast" class="fixed bottom-4 left-1/2 transform -translate-x-1/2 bg-green-600 text-white px-6 py-3 rounded-lg shadow-lg hidden transition-opacity duration-300">
+        Nomor disalin
+    </div>
+    
+    <script>
+    function copyPhone(phone) {
+        navigator.clipboard.writeText(phone).then(() => {
+            const toast = document.getElementById('toast');
+            toast.textContent = 'Nomor disalin: ' + phone;
+            toast.classList.remove('hidden');
+            setTimeout(() => toast.classList.add('hidden'), 2000);
+        });
+    }
+    </script>
+</body>
+</html>
