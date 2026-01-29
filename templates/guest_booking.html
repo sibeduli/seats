@@ -262,9 +262,10 @@
 <script>
     // ============ MAP VIEWER ============
     // ADJUST THESE VALUES TO CHANGE INITIAL VIEW
-    const INITIAL_MAP_SCALE = 1;  // 0.2 = 20%, 0.5 = 50%, 1 = 100%
-    const INITIAL_MAP_X = 3;
-    const INITIAL_MAP_Y = -266;
+    const isMobile = window.innerWidth <= 768;
+    const INITIAL_MAP_SCALE = isMobile ? 1 : 1;  // Mobile: 50%, Desktop: 100%
+    const INITIAL_MAP_X = isMobile ? 1 : 3;
+    const INITIAL_MAP_Y = isMobile ? 1 : -266;
 
     let mapScale = INITIAL_MAP_SCALE;
     let mapX = INITIAL_MAP_X;
